@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  --font-heading: "Outfit", sans-serif;
+  --font-body: "Sora", sans-serif;
+
+  --color-background: #FAFBFD;
+  --color-card: #FFFFFF;
+  --color-border: #F0F2F5;
+  --color-text-primary: #1A1D26;
+  --color-text-sub: #6B7280;
+  --color-text-muted: #9CA3AF;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #2563EB, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hover lift */
+.hover-lift {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Fade-up animation */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.6s ease both;
+}
+.animate-fade-up-1 {
+  animation: fade-up 0.6s ease 0.1s both;
+}
+.animate-fade-up-2 {
+  animation: fade-up 0.6s ease 0.2s both;
+}
+.animate-fade-up-3 {
+  animation: fade-up 0.6s ease 0.3s both;
+}
+.animate-fade-up-4 {
+  animation: fade-up 0.6s ease 0.4s both;
+}
+
+/* ── Print styles for reports ── */
+@media print {
+  /* Hide sidebar and non-report UI */
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Remove sidebar margin */
+  main {
+    margin-left: 0 !important;
+    padding: 20px !important;
+  }
+
+  /* Clean background */
+  body {
+    background: white !important;
+  }
+
+  /* Report content fills page */
+  .print-report {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Clean table printing */
+  .print-report table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  .print-report th,
+  .print-report td {
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  .print-report th {
+    background: #f9fafb;
+    font-weight: 600;
+  }
+}
