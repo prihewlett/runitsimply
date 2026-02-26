@@ -5,6 +5,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { useLanguage } from "@/lib/language-context";
+import { createModuleLogger } from "@/lib/logger";
+
+const log = createModuleLogger("login-page");
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -29,13 +32,20 @@ function LoginForm() {
       });
 
       if (signInError) {
+        log.warn("handleSubmit", "sign-in failed", {
+          email, errorMessage: signInError.message, errorStatus: signInError.status,
+        });
         setError(t("auth.loginError"));
         return;
       }
 
+      log.info("handleSubmit", "login successful, redirecting to dashboard", { email });
       router.push("/dashboard");
       router.refresh();
-    } catch {
+    } catch (err) {
+      log.error("handleSubmit", "unexpected exception during login", {
+        email, error: err instanceof Error ? err : String(err),
+      });
       setError(t("auth.loginError"));
     } finally {
       setLoading(false);

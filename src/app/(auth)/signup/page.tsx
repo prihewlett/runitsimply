@@ -4,6 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/language-context";
+import { createModuleLogger } from "@/lib/logger";
+
+const log = createModuleLogger("signup-page");
 
 export default function SignupPage() {
   const [businessName, setBusinessName] = useState("");
@@ -28,16 +31,29 @@ export default function SignupPage() {
         body: JSON.stringify({ email, password, businessName, fullName }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        log.error("handleSubmit", "failed to parse signup API response", {
+          status: res.status, error: parseErr instanceof Error ? parseErr : String(parseErr),
+        });
+        setError("Something went wrong. Please try again.");
+        return;
+      }
 
       if (!res.ok) {
+        log.warn("handleSubmit", "signup API returned error", { status: res.status, apiError: data.error });
         setError(data.error || t("auth.signupError"));
         return;
       }
 
       // Account created! Redirect to login page with success message
       router.push("/login?registered=true");
-    } catch {
+    } catch (err) {
+      log.error("handleSubmit", "unexpected exception during signup", {
+        error: err instanceof Error ? err : String(err),
+      });
       setError(t("auth.signupError"));
     } finally {
       setLoading(false);

@@ -11,7 +11,10 @@ import {
 } from "react";
 import { DEFAULT_BUSINESS_SETTINGS } from "./data";
 import { createClient } from "./supabase";
+import { createModuleLogger } from "./logger";
 import type { BusinessSettings, SubscriptionStatus } from "@/types";
+
+const log = createModuleLogger("settings");
 
 interface SettingsContextValue {
   settings: BusinessSettings;
@@ -70,18 +73,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       async function fetchSettings() {
         try {
           // Get the first business the user belongs to
-          const { data } = await supabase
+          const { data, error: fetchError } = await supabase
             .from("businesses")
             .select("*")
             .limit(1)
             .maybeSingle();
 
-          if (data) {
+          if (fetchError) {
+            log.error("fetchSettings", "business query failed", { error: fetchError });
+          } else if (!data) {
+            log.warn("fetchSettings", "no business found for current user - settings will use defaults");
+          } else {
             businessIdRef.current = data.id as string;
             setSettings(rowToSettings(data as Record<string, unknown>));
+            log.debug("fetchSettings", "business settings loaded", { businessId: data.id });
           }
         } catch (err) {
-          console.error("Failed to fetch settings from Supabase:", err);
+          log.error("fetchSettings", "unexpected exception fetching settings", {
+            error: err instanceof Error ? err : String(err),
+          });
         }
       }
 
@@ -134,7 +144,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           .update({ subscription_status: "expired" })
           .eq("id", businessIdRef.current)
           .then(({ error }) => {
-            if (error) console.error("Failed to expire trial:", error);
+            if (error) {
+              log.error("autoExpireTrial", "failed to update subscription_status to expired", {
+                businessId: businessIdRef.current, error,
+              });
+            } else {
+              log.info("autoExpireTrial", "trial marked as expired in database", {
+                businessId: businessIdRef.current,
+              });
+            }
           });
       }
       setSettings((prev) => {
@@ -171,7 +189,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           })
           .eq("id", businessIdRef.current)
           .then(({ error }) => {
-            if (error) console.error("Failed to update settings:", error);
+            if (error) {
+              log.error("updateSettings", "business settings update failed", {
+                businessId: businessIdRef.current, error,
+              });
+            } else {
+              log.debug("updateSettings", "settings persisted to database", {
+                businessId: businessIdRef.current,
+              });
+            }
           });
       } else {
         localStorage.setItem(SETTINGS_LS_KEY, JSON.stringify(next));

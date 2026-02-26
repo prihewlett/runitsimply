@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import { createModuleLogger } from "@/lib/logger";
+
+const log = createModuleLogger("signup-api");
 
 export async function POST(request: Request) {
   try {
     const { email, password, businessName, fullName } = await request.json();
+    log.info("POST", "signup attempt started", { email, businessName, fullName });
 
     const supabase = createAdminClient();
 
@@ -20,9 +24,10 @@ export async function POST(request: Request) {
     });
 
     if (authError) {
-      console.error("Auth user creation error:", authError);
+      log.error("POST", "auth user creation failed", { email, error: authError });
       return NextResponse.json({ error: authError.message }, { status: 400 });
     }
+    log.debug("POST", "auth user created", { userId: authData.user.id });
 
     // Step 2: Create the business
     const { data: business, error: bizError } = await supabase
@@ -37,11 +42,13 @@ export async function POST(request: Request) {
       .single();
 
     if (bizError) {
-      console.error("Business creation error:", bizError);
-      // Clean up the auth user
+      log.error("POST", "business creation failed, cleaning up auth user", {
+        userId: authData.user.id, error: bizError,
+      });
       await supabase.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json({ error: "Failed to create business: " + bizError.message }, { status: 500 });
     }
+    log.debug("POST", "business created", { businessId: business.id });
 
     // Step 3: Create the profile linking user to business
     const { error: profileError } = await supabase
@@ -54,13 +61,18 @@ export async function POST(request: Request) {
       });
 
     if (profileError) {
-      console.error("Profile creation error:", profileError);
+      log.error("POST", "profile creation failed - ORPHANED business record remains", {
+        userId: authData.user.id, businessId: business.id, error: profileError,
+      });
       return NextResponse.json({ error: "Failed to create profile: " + profileError.message }, { status: 500 });
     }
 
+    log.info("POST", "signup completed successfully", { userId: authData.user.id, businessId: business.id });
     return NextResponse.json({ success: true, userId: authData.user.id });
   } catch (err) {
-    console.error("Signup API error:", err);
+    log.error("POST", "unexpected exception during signup", {
+      error: err instanceof Error ? err : String(err),
+    });
     return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
 }

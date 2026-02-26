@@ -12,6 +12,9 @@ import { CLIENTS, JOBS, EMPLOYEES, MESSAGES, TIME_ENTRIES } from "./data";
 import { createClient } from "./supabase";
 import { useAuth } from "./auth-context";
 import { useSettings } from "./settings-context";
+import { createModuleLogger } from "./logger";
+
+const log = createModuleLogger("data");
 import type { Client, Job, Employee, TimeEntry, Expense, ExpenseCategory } from "@/types";
 import type { Message } from "./data";
 
@@ -178,10 +181,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (useSupabase.current) {
       // Wait for profile/businessId to be available before fetching
       if (!businessId) {
+        log.warn("fetchAll", "no businessId available - skipping data fetch (dashboard will be empty)", {
+          hasProfile: !!profile,
+        });
         setLoading(false);
         return;
       }
 
+      log.info("fetchAll", "starting data fetch", { businessId });
       // Fetch from Supabase
       const supabase = createClient();
 
@@ -198,8 +205,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               supabase.from("expense_categories").select("*"),
             ]);
 
+          // Check for query errors
+          const queryErrors: Record<string, unknown> = {};
+          if (clientsRes.error) queryErrors.clients = clientsRes.error;
+          if (jobsRes.error) queryErrors.jobs = jobsRes.error;
+          if (employeesRes.error) queryErrors.employees = employeesRes.error;
+          if (timeEntriesRes.error) queryErrors.timeEntries = timeEntriesRes.error;
+          if (messagesRes.error) queryErrors.messages = messagesRes.error;
+          if (expensesRes.error) queryErrors.expenses = expensesRes.error;
+          if (categoriesRes.error) queryErrors.categories = categoriesRes.error;
+          if (Object.keys(queryErrors).length > 0) {
+            log.error("fetchAll", "one or more data queries failed", {
+              businessId, failedQueries: Object.keys(queryErrors).join(", "), ...queryErrors,
+            });
+          }
+
           if (clientsRes.data) {
             setClientsRaw(clientsRes.data.map(rowToClient));
+          } else if (clientsRes.error) {
+            log.error("fetchAll", "clients query returned error", { businessId, error: clientsRes.error });
           }
 
           if (jobsRes.data) {
@@ -213,10 +237,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
           if (employeesRes.data) {
             setEmployeesRaw(employeesRes.data.map(rowToEmployee));
+          } else if (employeesRes.error) {
+            log.error("fetchAll", "employees query returned error", { businessId, error: employeesRes.error });
           }
 
           if (timeEntriesRes.data) {
             setTimeEntriesRaw(timeEntriesRes.data.map(rowToTimeEntry));
+          } else if (timeEntriesRes.error) {
+            log.error("fetchAll", "timeEntries query returned error", { businessId, error: timeEntriesRes.error });
           }
 
           if (messagesRes.data) {
@@ -264,8 +292,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             );
           }
         } catch (err) {
-          console.error("Failed to fetch from Supabase, using sample data:", err);
+          log.error("fetchAll", "Promise.all threw - all queries failed together", {
+            businessId, error: err instanceof Error ? err : String(err),
+          });
         } finally {
+          log.info("fetchAll", "data fetch complete", { businessId });
           setLoading(false);
         }
       }
@@ -302,7 +333,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(CLIENTS_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncClients", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       const { error } = await supabase.from("clients").upsert(
@@ -322,9 +353,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           service_rate_type: c.serviceRateType ?? null,
         }))
       );
-      if (error) console.error("Failed to sync clients:", error);
+      if (error) log.error("syncClients", "upsert failed", { businessId, error });
     } catch (err) {
-      console.error("Failed to sync clients:", err);
+      log.error("syncClients", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -333,7 +364,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(JOBS_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncJobs", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       // Batch upsert all jobs in one call
@@ -358,12 +389,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           series_id: j.seriesId ?? null,
         }))
       );
-      if (error) console.error("Failed to sync jobs:", error);
+      if (error) log.error("syncJobs", "upsert failed", { businessId, error });
 
-      // Sync job_employees junction table in parallel
+      // Sync job_employees junction table
       const jobIds = next.map((j) => j.id);
       if (jobIds.length > 0) {
-        await supabase.from("job_employees").delete().in("job_id", jobIds);
+        const { error: deleteJeError } = await supabase.from("job_employees").delete().in("job_id", jobIds);
+        if (deleteJeError) log.error("syncJobs", "job_employees delete failed", { businessId, error: deleteJeError });
         const allJunctionRows = next.flatMap((j) =>
           j.employeeIds.map((empId) => ({
             job_id: j.id,
@@ -371,11 +403,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           }))
         );
         if (allJunctionRows.length > 0) {
-          await supabase.from("job_employees").insert(allJunctionRows);
+          const { error: insertJeError } = await supabase.from("job_employees").insert(allJunctionRows);
+          if (insertJeError) log.error("syncJobs", "job_employees insert failed", { businessId, rowCount: allJunctionRows.length, error: insertJeError });
         }
       }
     } catch (err) {
-      console.error("Failed to sync jobs:", err);
+      log.error("syncJobs", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -384,7 +417,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncEmployees", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       const { error } = await supabase.from("employees").upsert(
@@ -400,9 +433,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           avatar: e.avatar,
         }))
       );
-      if (error) console.error("Failed to sync employees:", error);
+      if (error) log.error("syncEmployees", "upsert failed", { businessId, error });
     } catch (err) {
-      console.error("Failed to sync employees:", err);
+      log.error("syncEmployees", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -411,7 +444,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(MESSAGES_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncMessages", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       // Batch upsert all messages in one call
@@ -426,12 +459,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           unread: m.unread,
         }))
       );
-      if (error) console.error("Failed to sync messages:", error);
+      if (error) log.error("syncMessages", "upsert failed", { businessId, error });
 
-      // Sync message_items junction table in parallel
+      // Sync message_items junction table
       const msgIds = next.map((m) => m.id);
       if (msgIds.length > 0) {
-        await supabase.from("message_items").delete().in("message_id", msgIds);
+        const { error: deleteMiError } = await supabase.from("message_items").delete().in("message_id", msgIds);
+        if (deleteMiError) log.error("syncMessages", "message_items delete failed", { businessId, error: deleteMiError });
         const allItems = next.flatMap((m) =>
           m.messages.map((mi) => ({
             message_id: m.id,
@@ -441,11 +475,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           }))
         );
         if (allItems.length > 0) {
-          await supabase.from("message_items").insert(allItems);
+          const { error: insertMiError } = await supabase.from("message_items").insert(allItems);
+          if (insertMiError) log.error("syncMessages", "message_items insert failed", { businessId, rowCount: allItems.length, error: insertMiError });
         }
       }
     } catch (err) {
-      console.error("Failed to sync messages:", err);
+      log.error("syncMessages", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -454,7 +489,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(TIME_ENTRIES_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncTimeEntries", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       const { error } = await supabase.from("time_entries").upsert(
@@ -468,9 +503,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           hours: te.hours,
         }))
       );
-      if (error) console.error("Failed to sync time entries:", error);
+      if (error) log.error("syncTimeEntries", "upsert failed", { businessId, error });
     } catch (err) {
-      console.error("Failed to sync time entries:", err);
+      log.error("syncTimeEntries", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -479,7 +514,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(EXPENSES_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncExpenses", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       const { error } = await supabase.from("expenses").upsert(
@@ -496,9 +531,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           notes: exp.notes,
         }))
       );
-      if (error) console.error("Failed to sync expenses:", error);
+      if (error) log.error("syncExpenses", "upsert failed", { businessId, error });
     } catch (err) {
-      console.error("Failed to sync expenses:", err);
+      log.error("syncExpenses", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -507,7 +542,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(EXPENSE_CATEGORIES_KEY, JSON.stringify(next));
       return;
     }
-    if (!businessId) return;
+    if (!businessId) { log.warn("syncExpenseCategories", "skipped - no businessId", { itemCount: next.length }); return; }
     try {
       const supabase = createClient();
       const { error } = await supabase.from("expense_categories").upsert(
@@ -520,9 +555,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           is_default: cat.isDefault,
         }))
       );
-      if (error) console.error("Failed to sync expense categories:", error);
+      if (error) log.error("syncExpenseCategories", "upsert failed", { businessId, error });
     } catch (err) {
-      console.error("Failed to sync expense categories:", err);
+      log.error("syncExpenseCategories", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
   }, [businessId]);
 
@@ -530,7 +565,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setClients: React.Dispatch<React.SetStateAction<Client[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setClients", "write blocked - account is read-only"); return; }
       setClientsRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncClients(next);
@@ -542,7 +577,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setJobs: React.Dispatch<React.SetStateAction<Job[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setJobs", "write blocked - account is read-only"); return; }
       setJobsRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncJobs(next);
@@ -554,7 +589,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setEmployees: React.Dispatch<React.SetStateAction<Employee[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setEmployees", "write blocked - account is read-only"); return; }
       setEmployeesRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncEmployees(next);
@@ -566,7 +601,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setMessages: React.Dispatch<React.SetStateAction<Message[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setMessages", "write blocked - account is read-only"); return; }
       setMessagesRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncMessages(next);
@@ -578,7 +613,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setTimeEntries: React.Dispatch<React.SetStateAction<TimeEntry[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setTimeEntries", "write blocked - account is read-only"); return; }
       setTimeEntriesRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncTimeEntries(next);
@@ -590,7 +625,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setExpenses: React.Dispatch<React.SetStateAction<Expense[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setExpenses", "write blocked - account is read-only"); return; }
       setExpensesRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncExpenses(next);
@@ -602,7 +637,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const setExpenseCategories: React.Dispatch<React.SetStateAction<ExpenseCategory[]>> = useCallback(
     (action) => {
-      if (isReadOnly) return;
+      if (isReadOnly) { log.warn("setExpenseCategories", "write blocked - account is read-only"); return; }
       setExpenseCategoriesRaw((prev) => {
         const next = typeof action === "function" ? action(prev) : action;
         syncExpenseCategories(next);

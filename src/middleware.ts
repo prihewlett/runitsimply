@@ -1,5 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createModuleLogger } from "@/lib/logger";
+
+const log = createModuleLogger("middleware");
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ["/", "/login", "/signup", "/invite"];
@@ -52,12 +55,22 @@ export async function middleware(request: NextRequest) {
   // Refresh the session (important for token refresh)
   const {
     data: { user },
+    error: getUserError,
   } = await supabase.auth.getUser();
+
+  if (getUserError) {
+    log.error("middleware", "getUser() failed - may redirect to login incorrectly", {
+      pathname: request.nextUrl.pathname, error: getUserError,
+    });
+  }
 
   const { pathname } = request.nextUrl;
 
   // If user is NOT authenticated and trying to access a protected route
   if (!user && !PUBLIC_ROUTES.includes(pathname)) {
+    log.info("middleware", "unauthenticated user redirected to login", {
+      pathname, hadGetUserError: !!getUserError,
+    });
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);

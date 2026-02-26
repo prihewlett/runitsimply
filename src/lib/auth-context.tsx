@@ -10,7 +10,10 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "./supabase";
+import { createModuleLogger } from "./logger";
 import type { User } from "@supabase/supabase-js";
+
+const log = createModuleLogger("auth");
 
 type Role = "owner" | "employee";
 
@@ -73,16 +76,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Get initial session
       async function getSession() {
         try {
-          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          const { data: { user: currentUser }, error: getUserError } = await supabase.auth.getUser();
+          if (getUserError) {
+            log.error("getSession", "getUser() failed", { error: getUserError });
+          }
+          log.debug("getSession", "getUser() result", { hasUser: !!currentUser, userId: currentUser?.id });
           setUser(currentUser);
 
           if (currentUser) {
             // Fetch profile
-            const { data: profileData } = await supabase
+            const { data: profileData, error: profileError } = await supabase
               .from("profiles")
               .select("*")
               .eq("id", currentUser.id)
               .maybeSingle();
+
+            if (profileError) {
+              log.error("getSession", "profile fetch failed", { userId: currentUser.id, error: profileError });
+            } else if (!profileData) {
+              log.warn("getSession", "no profile found for authenticated user", { userId: currentUser.id });
+            }
 
             if (profileData) {
               const prof: Profile = {
@@ -98,8 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         } catch (err) {
-          console.error("Failed to get auth session:", err);
+          log.error("getSession", "unexpected exception during auth initialization", {
+            error: err instanceof Error ? err : String(err),
+          });
         } finally {
+          log.info("getSession", "auth initialization complete, setting authReady=true");
           setAuthReady(true);
         }
       }
@@ -117,11 +133,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           if (event === "SIGNED_IN" && session?.user) {
             // Fetch profile on sign in (use maybeSingle to avoid errors for new users)
-            const { data: profileData } = await supabase
+            const { data: profileData, error: signInProfileError } = await supabase
               .from("profiles")
               .select("*")
               .eq("id", session.user.id)
               .maybeSingle();
+
+            if (signInProfileError) {
+              log.error("onAuthStateChange", "profile fetch failed after SIGNED_IN", {
+                userId: session.user.id,
+                error: signInProfileError,
+              });
+            }
 
             if (profileData) {
               const prof: Profile = {
@@ -134,6 +157,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(prof);
               setRoleRaw(prof.role);
               setCurrentEmployeeIdRaw(prof.employeeId);
+              log.debug("onAuthStateChange", "profile loaded after SIGNED_IN", { userId: session.user.id, role: prof.role });
+            } else {
+              log.warn("onAuthStateChange", "no profile found after SIGNED_IN", { userId: session.user.id });
             }
           }
         }
@@ -200,7 +226,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     if (useSupabase.current) {
       const supabase = createClient();
-      await supabase.auth.signOut();
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) {
+        log.error("signOut", "signOut() returned error", { error: signOutError });
+      } else {
+        log.info("signOut", "user signed out successfully");
+      }
       router.push("/login");
       router.refresh();
     }
