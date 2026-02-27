@@ -46,12 +46,6 @@ export function Hero() {
         >
           {t("hero.cta")} <ArrowRightIcon size={16} />
         </Link>
-        <Link
-          href="/signup"
-          className="inline-flex items-center rounded-[13px] border-[1.5px] border-[#F0F2F5] bg-[#FAFBFD] px-7 py-3.5 text-[15px] font-semibold text-gray-500"
-        >
-          {t("hero.ctaSecondary")}
-        </Link>
       </div>
 
       {/* Business type pills */}
