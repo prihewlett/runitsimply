@@ -46,6 +46,15 @@ export default function TeamPage() {
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [memberRemoved, setMemberRemoved] = useState(false);
+  const [memberUpdated, setMemberUpdated] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    phone: "",
+    role: "",
+    rate: "",
+    payType: "hourly" as "hourly" | "perJob",
+  });
 
   const { t } = useLanguage();
   const { settings, isReadOnly } = useSettings();
@@ -111,6 +120,47 @@ export default function TeamPage() {
     setConfirmDelete(false);
     setMemberRemoved(true);
     setTimeout(() => setMemberRemoved(false), 2500);
+  };
+
+  const handleStartEdit = () => {
+    if (!selectedEmp) return;
+    setEditForm({
+      name: selectedEmp.name,
+      phone: selectedEmp.phone,
+      role: selectedEmp.role,
+      rate: String(selectedEmp.rate),
+      payType: selectedEmp.payType || "hourly",
+    });
+    setEditing(true);
+  };
+
+  const handleUpdateMember = () => {
+    if (!selectedEmployee || !editForm.name.trim() || !editForm.role.trim()) return;
+    const updatedName = editForm.name.trim();
+    const initials = updatedName
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+    setEmployees((prev) =>
+      prev.map((e) =>
+        e.id === selectedEmployee
+          ? {
+              ...e,
+              name: updatedName,
+              phone: editForm.phone,
+              role: editForm.role,
+              rate: parseFloat(editForm.rate) || 0,
+              payType: editForm.payType,
+              avatar: initials,
+            }
+          : e
+      )
+    );
+    setEditing(false);
+    setMemberUpdated(true);
+    setTimeout(() => setMemberUpdated(false), 2500);
   };
 
   const handleSaveTimeEntry = () => {
@@ -282,33 +332,88 @@ export default function TeamPage() {
       {/* Employee detail modal */}
       <Modal
         open={selectedEmployee !== null}
-        onClose={() => { setSelectedEmployee(null); setConfirmDelete(false); }}
+        onClose={() => { setSelectedEmployee(null); setConfirmDelete(false); setEditing(false); }}
         title={selectedEmp?.name ?? ""}
         wide
       >
         {selectedEmp && (
           <div>
-            {/* Header */}
-            <div className="mb-5 flex items-center gap-4">
-              <div
-                className="flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold text-white"
-                style={{ background: selectedEmp.color }}
-              >
-                {selectedEmp.avatar}
-              </div>
-              <div>
-                <div className="text-lg font-bold">{selectedEmp.name}</div>
-                <div className="font-body text-sm text-gray-500">
-                  {selectedEmp.role}
-                  {!settings.hidePayroll && (
-                    <> &middot; {formatRate(selectedEmp, t("team.perJob"))}</>
-                  )}
+            {/* Header — view or edit mode */}
+            {editing ? (
+              <div className="mb-5">
+                <FormInput
+                  label={t("team.name")}
+                  value={editForm.name}
+                  onChange={(v) => setEditForm((prev) => ({ ...prev, name: v }))}
+                  placeholder={t("team.placeholderName")}
+                />
+                <FormInput
+                  label={t("team.phone")}
+                  value={editForm.phone}
+                  onChange={(v) => setEditForm((prev) => ({ ...prev, phone: v }))}
+                  placeholder="(555) 234-5678"
+                />
+                <FormInput
+                  label={t("team.roleLabel")}
+                  value={editForm.role}
+                  onChange={(v) => setEditForm((prev) => ({ ...prev, role: v }))}
+                  placeholder={t("team.placeholderRole")}
+                />
+                <FormInput
+                  label={t("team.rateLabel")}
+                  value={editForm.rate}
+                  onChange={(v) => setEditForm((prev) => ({ ...prev, rate: v }))}
+                  type="number"
+                  placeholder="20"
+                />
+                <FormInput
+                  label={t("team.payType")}
+                  value={editForm.payType}
+                  onChange={(v) => setEditForm((prev) => ({ ...prev, payType: v as "hourly" | "perJob" }))}
+                  options={[
+                    { value: "hourly", label: t("team.hourly") },
+                    { value: "perJob", label: t("team.perJob") },
+                  ]}
+                />
+                <div className="mt-4 flex gap-2">
+                  <ButtonPrimary onClick={handleUpdateMember}>
+                    {t("team.saveMember")}
+                  </ButtonPrimary>
+                  <ButtonSecondary onClick={() => setEditing(false)}>
+                    {t("common.cancel")}
+                  </ButtonSecondary>
                 </div>
-                <div className="font-body text-sm text-gray-400">
-                  {selectedEmp.phone}
-                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mb-5 flex items-center gap-4">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-xl text-lg font-bold text-white"
+                  style={{ background: selectedEmp.color }}
+                >
+                  {selectedEmp.avatar}
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold">{selectedEmp.name}</div>
+                  <div className="font-body text-sm text-gray-500">
+                    {selectedEmp.role}
+                    {!settings.hidePayroll && (
+                      <> &middot; {formatRate(selectedEmp, t("team.perJob"))}</>
+                    )}
+                  </div>
+                  <div className="font-body text-sm text-gray-400">
+                    {selectedEmp.phone}
+                  </div>
+                </div>
+                {isOwner && !isReadOnly && (
+                  <button
+                    onClick={handleStartEdit}
+                    className="cursor-pointer rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] px-3 py-1.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-100"
+                  >
+                    {t("team.editMember")}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Time entries */}
             <h4 className="mb-2 flex items-center gap-2 text-sm font-bold">
@@ -505,6 +610,11 @@ export default function TeamPage() {
       {memberRemoved && (
         <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {t("team.memberRemoved")}
+        </div>
+      )}
+      {memberUpdated && (
+        <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {t("team.memberUpdated")}
         </div>
       )}
 
