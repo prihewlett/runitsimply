@@ -39,7 +39,7 @@ export function Navbar() {
         </a>
         <LanguageToggle />
         <Link
-          href="/dashboard"
+          href="/signup"
           className="inline-flex items-center gap-2 rounded-[11px] bg-gradient-to-br from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
         >
           {t("nav.openDashboard")} <ArrowRightIcon size={16} />

@@ -16,7 +16,7 @@ export function Cta() {
         {t("cta.subtitle")}
       </p>
       <Link
-        href="/dashboard"
+        href="/signup"
         className="inline-flex items-center gap-2 rounded-[14px] bg-gradient-to-br from-blue-600 to-blue-700 px-9 py-3.5 text-base font-semibold text-white shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
       >
         {t("cta.button")} <ArrowRightIcon size={16} />

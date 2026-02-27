@@ -41,7 +41,7 @@ export function Hero() {
       {/* CTAs */}
       <div className="animate-fade-up-3 mb-12 flex justify-center gap-3">
         <Link
-          href="/dashboard"
+          href="/signup"
           className="inline-flex items-center gap-2 rounded-[13px] bg-gradient-to-br from-blue-600 to-blue-700 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
         >
           {t("hero.cta")} <ArrowRightIcon size={16} />
