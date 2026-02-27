@@ -75,9 +75,12 @@ export function Pricing() {
                 {t(key)}
               </div>
             ))}
-            <button className="mt-4 inline-flex w-full cursor-pointer items-center justify-center rounded-[11px] border-[1.5px] border-[#F0F2F5] bg-[#FAFBFD] px-5 py-2.5 text-sm font-semibold text-gray-500">
+            <Link
+              href="/signup"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-[11px] border-[1.5px] border-[#F0F2F5] bg-[#FAFBFD] px-5 py-2.5 text-sm font-semibold text-gray-500"
+            >
               {t("pricing.startFreeTrial")}
-            </button>
+            </Link>
           </div>
 
           {/* Pro */}
