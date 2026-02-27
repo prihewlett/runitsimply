@@ -459,6 +459,28 @@ const en = {
   "auth.inviteSent": "Invite sent!",
   "auth.invitePending": "Invited",
 
+  // ── Auth: Password Reset ──
+  "auth.forgotPassword": "Forgot password?",
+  "auth.forgotPasswordSubtitle": "Enter your email and we'll send you a reset link",
+  "auth.sendResetLink": "Send Reset Link",
+  "auth.sendingReset": "Sending\u2026",
+  "auth.checkEmail": "Check Your Email",
+  "auth.resetEmailSent": "We sent you a password reset link",
+  "auth.resetEmailSentDetail": "Check your inbox for a link to reset your password. It may take a minute to arrive.",
+  "auth.backToLogin": "Back to Sign In",
+  "auth.resetPassword": "Reset Password",
+  "auth.resetPasswordSubtitle": "Enter your new password below",
+  "auth.newPassword": "New Password",
+  "auth.confirmPassword": "Confirm Password",
+  "auth.passwordsNoMatch": "Passwords do not match",
+  "auth.resettingPassword": "Resetting\u2026",
+  "auth.resetSuccessTitle": "Password Updated!",
+  "auth.resetSuccessMessage": "Your password has been reset successfully. Redirecting you to the dashboard\u2026",
+  "auth.redirectingToDashboard": "Redirecting\u2026",
+  "auth.resetLinkInvalid": "This reset link is invalid or has expired. Please request a new one.",
+  "auth.requestNewLink": "Request a new reset link",
+  "auth.resetError": "Something went wrong. Please try again.",
+
   // ── Dashboard: Employee View ──
   "dashboard.mySubtitle": "Your overview for this week",
 
@@ -1021,6 +1043,28 @@ const es: Record<TranslationKey, string> = {
   "auth.sendInvite": "Enviar Invitaci\u00F3n",
   "auth.inviteSent": "\u00A1Invitaci\u00F3n enviada!",
   "auth.invitePending": "Invitado",
+
+  // ── Auth: Password Reset ──
+  "auth.forgotPassword": "\u00BFOlvidaste tu contrase\u00F1a?",
+  "auth.forgotPasswordSubtitle": "Ingresa tu correo y te enviaremos un enlace para restablecer",
+  "auth.sendResetLink": "Enviar Enlace",
+  "auth.sendingReset": "Enviando\u2026",
+  "auth.checkEmail": "Revisa Tu Correo",
+  "auth.resetEmailSent": "Te enviamos un enlace para restablecer tu contrase\u00F1a",
+  "auth.resetEmailSentDetail": "Revisa tu bandeja de entrada. El enlace puede tardar un minuto en llegar.",
+  "auth.backToLogin": "Volver a Iniciar Sesi\u00F3n",
+  "auth.resetPassword": "Restablecer Contrase\u00F1a",
+  "auth.resetPasswordSubtitle": "Ingresa tu nueva contrase\u00F1a",
+  "auth.newPassword": "Nueva Contrase\u00F1a",
+  "auth.confirmPassword": "Confirmar Contrase\u00F1a",
+  "auth.passwordsNoMatch": "Las contrase\u00F1as no coinciden",
+  "auth.resettingPassword": "Restableciendo\u2026",
+  "auth.resetSuccessTitle": "\u00A1Contrase\u00F1a Actualizada!",
+  "auth.resetSuccessMessage": "Tu contrase\u00F1a ha sido restablecida exitosamente. Redirigiendo al panel\u2026",
+  "auth.redirectingToDashboard": "Redirigiendo\u2026",
+  "auth.resetLinkInvalid": "Este enlace es inv\u00E1lido o ha expirado. Solicita uno nuevo.",
+  "auth.requestNewLink": "Solicitar un nuevo enlace",
+  "auth.resetError": "Algo sali\u00F3 mal. Int\u00E9ntalo de nuevo.",
 
   // ── Dashboard: Employee View ──
   "dashboard.mySubtitle": "Tu resumen de esta semana",

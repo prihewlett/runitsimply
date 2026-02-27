@@ -112,7 +112,13 @@ function LoginForm() {
         </button>
       </form>
 
-      <p className="mt-4 text-center font-body text-xs text-gray-400">
+      <p className="mt-3 text-center font-body text-xs">
+        <Link href="/forgot-password" className="text-gray-400 hover:text-blue-600 hover:underline">
+          {t("auth.forgotPassword")}
+        </Link>
+      </p>
+
+      <p className="mt-2 text-center font-body text-xs text-gray-400">
         {t("auth.noAccount")}{" "}
         <Link href="/signup" className="font-semibold text-blue-600 hover:underline">
           {t("auth.signUp")}
