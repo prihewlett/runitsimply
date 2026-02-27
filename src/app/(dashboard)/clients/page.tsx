@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
-import { ButtonPrimary } from "@/components/ui/button";
+import { ButtonPrimary, ButtonSecondary } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { FormInput } from "@/components/ui/form-input";
 import { ServiceBadge } from "@/components/ui/badge";
@@ -21,13 +21,12 @@ export default function ClientsPage() {
   const { clients, setClients, jobs: JOBS } = useData();
   const { isOwner } = useAuth();
   const { isReadOnly } = useSettings();
-  const [editingRate, setEditingRate] = useState(false);
-  const [rateValue, setRateValue] = useState("");
-  const [rateType, setRateType] = useState<"flat" | "hourly">("flat");
   const [showAddClient, setShowAddClient] = useState(false);
   const [clientAdded, setClientAdded] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [clientDeleted, setClientDeleted] = useState(false);
+  const [clientUpdated, setClientUpdated] = useState(false);
+  const [editing, setEditing] = useState(false);
   const DEFAULT_CLIENT_FORM = {
     name: "",
     contact: "",
@@ -42,6 +41,7 @@ export default function ClientsPage() {
     notes: "",
   };
   const [clientForm, setClientForm] = useState(DEFAULT_CLIENT_FORM);
+  const [clientEditForm, setClientEditForm] = useState(DEFAULT_CLIENT_FORM);
   const [clientFormError, setClientFormError] = useState(false);
   const { t } = useLanguage();
 
@@ -102,18 +102,49 @@ export default function ClientsPage() {
     setTimeout(() => setClientDeleted(false), 2500);
   };
 
-  const handleSaveRate = () => {
-    if (selectedClient === null) return;
-    const rate = parseFloat(rateValue);
-    if (isNaN(rate) || rate < 0) return;
+  const handleStartEditClient = () => {
+    if (!selected) return;
+    setClientEditForm({
+      name: selected.name,
+      contact: selected.contact,
+      phone: selected.phone,
+      email: selected.email ?? "",
+      address: selected.address,
+      frequency: selected.frequency,
+      paymentMethod: selected.paymentMethod,
+      serviceType: selected.serviceType,
+      serviceRate: selected.serviceRate ? String(selected.serviceRate) : "",
+      serviceRateType: selected.serviceRateType ?? "flat",
+      notes: selected.notes,
+    });
+    setEditing(true);
+  };
+
+  const handleUpdateClient = () => {
+    if (!selectedClient || !clientEditForm.name.trim() || !clientEditForm.contact.trim()) return;
     setClients((prev) =>
       prev.map((c) =>
         c.id === selectedClient
-          ? { ...c, serviceRate: rate, serviceRateType: rateType }
+          ? {
+              ...c,
+              name: clientEditForm.name.trim(),
+              contact: clientEditForm.contact.trim(),
+              phone: clientEditForm.phone,
+              email: clientEditForm.email || undefined,
+              address: clientEditForm.address,
+              frequency: clientEditForm.frequency,
+              paymentMethod: clientEditForm.paymentMethod,
+              serviceType: clientEditForm.serviceType,
+              serviceRate: clientEditForm.serviceRate ? parseFloat(clientEditForm.serviceRate) : undefined,
+              serviceRateType: clientEditForm.serviceRateType,
+              notes: clientEditForm.notes,
+            }
           : c
       )
     );
-    setEditingRate(false);
+    setEditing(false);
+    setClientUpdated(true);
+    setTimeout(() => setClientUpdated(false), 2500);
   };
 
   return (
@@ -370,7 +401,7 @@ export default function ClientsPage() {
         open={selectedClient !== null}
         onClose={() => {
           setSelectedClient(null);
-          setEditingRate(false);
+          setEditing(false);
           setConfirmDelete(false);
         }}
         title={selected?.name ?? ""}
@@ -378,132 +409,202 @@ export default function ClientsPage() {
       >
         {selected && (
           <div>
-            {/* Client info */}
-            <div className="mb-5 grid grid-cols-2 gap-4">
+            {editing ? (
+              /* ── Edit mode ── */
               <div>
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.contact")}
-                </div>
-                <div className="text-sm font-semibold">{selected.contact}</div>
-                <div className="font-body text-xs text-gray-500">
-                  {selected.phone}
-                </div>
-                {selected.email && (
-                  <div className="font-body text-xs text-gray-500">
-                    {selected.email}
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.serviceType")}
-                </div>
-                <div className="mt-1">
-                  <ServiceBadge type={selected.serviceType} size="md" />
-                </div>
-              </div>
-              <div>
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.address")}
-                </div>
-                <div className="text-sm">{selected.address && <AddressLink address={selected.address} />}</div>
-              </div>
-              <div>
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.paymentMethod")}
-                </div>
-                <div className="mt-1">
-                  <span
-                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
-                    style={{
-                      background: PAYMENT_INFO[selected.paymentMethod].bg,
-                      color: PAYMENT_INFO[selected.paymentMethod].color,
-                    }}
-                  >
-                    {PAYMENT_INFO[selected.paymentMethod].icon}{" "}
-                    {selected.paymentMethod}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.frequency")}
-                </div>
-                <div className="text-sm">{selected.frequency}</div>
-              </div>
-              <div>
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.notes")}
-                </div>
-                <div className="text-sm text-gray-600">{selected.notes}</div>
-              </div>
-
-              {/* Service Rate */}
-              <div className="col-span-2">
-                <div className="font-body text-[11px] font-semibold text-gray-400">
-                  {t("clients.serviceRateLabel")}
-                </div>
-                <div className="mt-1">
-                  {editingRate ? (
-                    <div className="space-y-3">
-                      {/* Flat / Hourly toggle */}
-                      <div>
-                        <div className="mb-1 font-body text-[10px] font-semibold text-gray-400">
-                          {t("clients.rateType")}
-                        </div>
-                        <div className="inline-flex rounded-[8px] border border-[#F0F2F5] p-0.5">
-                          <button
-                            onClick={() => setRateType("flat")}
-                            aria-pressed={rateType === "flat"}
-                            className={`cursor-pointer rounded-[6px] px-3 py-1 text-xs font-semibold transition-colors ${
-                              rateType === "flat"
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "text-gray-400 hover:text-gray-600"
-                            }`}
-                          >
-                            {t("clients.flatRate")}
-                          </button>
-                          <button
-                            onClick={() => setRateType("hourly")}
-                            aria-pressed={rateType === "hourly"}
-                            className={`cursor-pointer rounded-[6px] px-3 py-1 text-xs font-semibold transition-colors ${
-                              rateType === "hourly"
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "text-gray-400 hover:text-gray-600"
-                            }`}
-                          >
-                            {t("clients.hourlyRate")}
-                          </button>
-                        </div>
-                      </div>
-                      {/* Amount input */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-400">$</span>
-                        <input
-                          type="number"
-                          value={rateValue}
-                          onChange={(e) => setRateValue(e.target.value)}
-                          className="w-24 rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-1.5 font-body text-sm outline-none focus:border-blue-600"
-                          placeholder="150"
-                          min="0"
-                          autoFocus
-                        />
-                        <span className="font-body text-[10px] text-gray-400">
-                          {rateType === "hourly"
-                            ? t("clients.perHour")
-                            : t("clients.perVisit")}
-                        </span>
-                      </div>
-                      {/* Save button */}
+                <div className="grid grid-cols-2 gap-x-4">
+                  <FormInput
+                    label={t("clients.property")}
+                    value={clientEditForm.name}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, name: v }))}
+                    placeholder={t("clients.placeholderProperty")}
+                  />
+                  <FormInput
+                    label={t("clients.contactName")}
+                    value={clientEditForm.contact}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, contact: v }))}
+                    placeholder={t("clients.placeholderContact")}
+                  />
+                  <FormInput
+                    label={t("clients.phone")}
+                    value={clientEditForm.phone}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, phone: v }))}
+                    placeholder="(555) 123-4567"
+                  />
+                  <FormInput
+                    label={t("clients.email")}
+                    value={clientEditForm.email}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, email: v }))}
+                    type="email"
+                    placeholder={t("clients.emailPlaceholder")}
+                  />
+                  <FormInput
+                    label={t("clients.address")}
+                    value={clientEditForm.address}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, address: v }))}
+                    placeholder="1420 Oak Valley Dr, Austin, TX"
+                  />
+                  <FormInput
+                    label={t("clients.frequency")}
+                    value={clientEditForm.frequency}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, frequency: v as Client["frequency"] }))}
+                    options={[
+                      { value: "Weekly", label: t("clients.weekly") },
+                      { value: "Bi-weekly", label: t("clients.biweekly") },
+                      { value: "Monthly", label: t("clients.monthly") },
+                      { value: "One-time", label: t("clients.oneTime") },
+                    ]}
+                  />
+                  <FormInput
+                    label={t("clients.paymentMethod")}
+                    value={clientEditForm.paymentMethod}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, paymentMethod: v as PaymentMethod }))}
+                    options={[
+                      { value: "Cash", label: t("payments.cash") },
+                      { value: "Venmo", label: t("payments.venmo") },
+                      { value: "Zelle", label: t("payments.zelle") },
+                      { value: "Credit Card", label: t("payments.creditCard") },
+                      { value: "Check", label: t("payments.check") },
+                    ]}
+                  />
+                  <FormInput
+                    label={t("clients.serviceType")}
+                    value={clientEditForm.serviceType}
+                    onChange={(v) => setClientEditForm((prev) => ({ ...prev, serviceType: v as ServiceType }))}
+                    options={BUSINESS_TYPES.map((bt) => ({ value: bt.id, label: `${bt.emoji} ${bt.label}` }))}
+                  />
+                  <div>
+                    <FormInput
+                      label={t("clients.serviceRateLabel")}
+                      value={clientEditForm.serviceRate}
+                      onChange={(v) => setClientEditForm((prev) => ({ ...prev, serviceRate: v }))}
+                      type="number"
+                      placeholder="150"
+                    />
+                    <div className="mb-3 -mt-1 inline-flex rounded-[8px] border border-[#F0F2F5] p-0.5">
                       <button
-                        onClick={handleSaveRate}
-                        className="w-full cursor-pointer rounded-[10px] bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                        onClick={() => setClientEditForm((prev) => ({ ...prev, serviceRateType: "flat" }))}
+                        aria-pressed={clientEditForm.serviceRateType === "flat"}
+                        className={`cursor-pointer rounded-[6px] px-3 py-1 text-xs font-semibold transition-colors ${
+                          clientEditForm.serviceRateType === "flat"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
+                        }`}
                       >
-                        {t("clients.saveRate")}
+                        {t("clients.flatRate")}
+                      </button>
+                      <button
+                        onClick={() => setClientEditForm((prev) => ({ ...prev, serviceRateType: "hourly" }))}
+                        aria-pressed={clientEditForm.serviceRateType === "hourly"}
+                        className={`cursor-pointer rounded-[6px] px-3 py-1 text-xs font-semibold transition-colors ${
+                          clientEditForm.serviceRateType === "hourly"
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "text-gray-400 hover:text-gray-600"
+                        }`}
+                      >
+                        {t("clients.hourlyRate")}
                       </button>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
+                  </div>
+                  <div className="col-span-2">
+                    <FormInput
+                      label={t("clients.notes")}
+                      value={clientEditForm.notes}
+                      onChange={(v) => setClientEditForm((prev) => ({ ...prev, notes: v }))}
+                      placeholder="2-story. Has a dog."
+                    />
+                  </div>
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <ButtonPrimary onClick={handleUpdateClient}>
+                    {t("clients.saveClient")}
+                  </ButtonPrimary>
+                  <ButtonSecondary onClick={() => setEditing(false)}>
+                    {t("common.cancel")}
+                  </ButtonSecondary>
+                </div>
+              </div>
+            ) : (
+              /* ── View mode ── */
+              <div>
+                {/* Edit button */}
+                {isOwner && !isReadOnly && (
+                  <div className="mb-4 flex justify-end">
+                    <button
+                      onClick={handleStartEditClient}
+                      className="cursor-pointer rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] px-3 py-1.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-100"
+                    >
+                      {t("clients.editClient")}
+                    </button>
+                  </div>
+                )}
+
+                {/* Client info */}
+                <div className="mb-5 grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.contact")}
+                    </div>
+                    <div className="text-sm font-semibold">{selected.contact}</div>
+                    <div className="font-body text-xs text-gray-500">
+                      {selected.phone}
+                    </div>
+                    {selected.email && (
+                      <div className="font-body text-xs text-gray-500">
+                        {selected.email}
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.serviceType")}
+                    </div>
+                    <div className="mt-1">
+                      <ServiceBadge type={selected.serviceType} size="md" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.address")}
+                    </div>
+                    <div className="text-sm">{selected.address && <AddressLink address={selected.address} />}</div>
+                  </div>
+                  <div>
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.paymentMethod")}
+                    </div>
+                    <div className="mt-1">
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
+                        style={{
+                          background: PAYMENT_INFO[selected.paymentMethod].bg,
+                          color: PAYMENT_INFO[selected.paymentMethod].color,
+                        }}
+                      >
+                        {PAYMENT_INFO[selected.paymentMethod].icon}{" "}
+                        {selected.paymentMethod}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.frequency")}
+                    </div>
+                    <div className="text-sm">{selected.frequency}</div>
+                  </div>
+                  <div>
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.notes")}
+                    </div>
+                    <div className="text-sm text-gray-600">{selected.notes}</div>
+                  </div>
+
+                  {/* Service Rate */}
+                  <div className="col-span-2">
+                    <div className="font-body text-[11px] font-semibold text-gray-400">
+                      {t("clients.serviceRateLabel")}
+                    </div>
+                    <div className="mt-1 flex items-center gap-2">
                       <span className="text-sm font-semibold">
                         {formatRate(selected)}
                       </span>
@@ -514,90 +615,78 @@ export default function ClientsPage() {
                             : t("clients.perVisit")}
                         </span>
                       )}
-                      {!isReadOnly && (
-                        <button
-                          onClick={() => {
-                            setEditingRate(true);
-                            setRateValue(String(selected.serviceRate ?? ""));
-                            setRateType(selected.serviceRateType ?? "flat");
-                          }}
-                          className="cursor-pointer rounded-[6px] bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:bg-gray-200"
-                        >
-                          {t("clients.editRate")}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Job history */}
-            <h4 className="mb-2 text-sm font-bold">
-              {t("clients.serviceHistory", { count: selectedClientJobs.length })}
-            </h4>
-            {selectedClientJobs.length === 0 ? (
-              <p className="font-body text-sm text-gray-400">
-                {t("clients.noHistory")}
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {selectedClientJobs.map((job) => (
-                  <div
-                    key={job.id}
-                    className="flex items-center justify-between rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-3"
-                  >
-                    <div>
-                      <div className="font-body text-xs text-gray-500">
-                        {job.date} &middot; {job.time} &middot; {job.duration}h
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">
-                        ${job.amount}
-                      </span>
-                      <span
-                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                        style={{
-                          background:
-                            job.status === "completed" ? "#ECFDF5" : "#EFF6FF",
-                          color:
-                            job.status === "completed" ? "#059669" : "#2563EB",
-                        }}
-                      >
-                        {job.status}
-                      </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
 
-            {/* Delete button (owner only) */}
-            {isOwner && !isReadOnly && (
-              <div className="mt-5 border-t border-[#F0F2F5] pt-4">
-                {!confirmDelete ? (
-                  <button
-                    onClick={() => setConfirmDelete(true)}
-                    className="cursor-pointer rounded-[10px] bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
-                  >
-                    {t("clients.deleteClient")}
-                  </button>
+                {/* Job history */}
+                <h4 className="mb-2 text-sm font-bold">
+                  {t("clients.serviceHistory", { count: selectedClientJobs.length })}
+                </h4>
+                {selectedClientJobs.length === 0 ? (
+                  <p className="font-body text-sm text-gray-400">
+                    {t("clients.noHistory")}
+                  </p>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gray-500">{t("common.confirmDelete")}</span>
-                    <button
-                      onClick={handleDeleteClient}
-                      className="cursor-pointer rounded-[10px] bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700"
-                    >
-                      {t("common.confirm")}
-                    </button>
-                    <button
-                      onClick={() => setConfirmDelete(false)}
-                      className="cursor-pointer rounded-[10px] border border-[#F0F2F5] bg-white px-4 py-2 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-50"
-                    >
-                      {t("common.cancel")}
-                    </button>
+                  <div className="space-y-2">
+                    {selectedClientJobs.map((job) => (
+                      <div
+                        key={job.id}
+                        className="flex items-center justify-between rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-3"
+                      >
+                        <div>
+                          <div className="font-body text-xs text-gray-500">
+                            {job.date} &middot; {job.time} &middot; {job.duration}h
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">
+                            ${job.amount}
+                          </span>
+                          <span
+                            className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                            style={{
+                              background:
+                                job.status === "completed" ? "#ECFDF5" : "#EFF6FF",
+                              color:
+                                job.status === "completed" ? "#059669" : "#2563EB",
+                            }}
+                          >
+                            {job.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Delete button (owner only) */}
+                {isOwner && !isReadOnly && (
+                  <div className="mt-5 border-t border-[#F0F2F5] pt-4">
+                    {!confirmDelete ? (
+                      <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="cursor-pointer rounded-[10px] bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+                      >
+                        {t("clients.deleteClient")}
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500">{t("common.confirmDelete")}</span>
+                        <button
+                          onClick={handleDeleteClient}
+                          className="cursor-pointer rounded-[10px] bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-700"
+                        >
+                          {t("common.confirm")}
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(false)}
+                          className="cursor-pointer rounded-[10px] border border-[#F0F2F5] bg-white px-4 py-2 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-50"
+                        >
+                          {t("common.cancel")}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -605,6 +694,13 @@ export default function ClientsPage() {
           </div>
         )}
       </Modal>
+
+      {/* Client updated toast */}
+      {clientUpdated && (
+        <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {t("clients.clientUpdated")}
+        </div>
+      )}
 
       {/* Client deleted toast */}
       {clientDeleted && (

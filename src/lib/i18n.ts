@@ -503,6 +503,9 @@ const en = {
   // ── Delete actions ──
   "clients.deleteClient": "Delete Client",
   "clients.clientDeleted": "Client deleted!",
+  "clients.editClient": "Edit",
+  "clients.clientUpdated": "Client updated!",
+  "clients.saveClient": "Save Changes",
   "team.removeMember": "Remove Member",
   "team.memberRemoved": "Member removed!",
   "team.memberUpdated": "Member updated!",
@@ -1090,6 +1093,9 @@ const es: Record<TranslationKey, string> = {
   // ── Delete actions ──
   "clients.deleteClient": "Eliminar Cliente",
   "clients.clientDeleted": "\u00A1Cliente eliminado!",
+  "clients.editClient": "Editar",
+  "clients.clientUpdated": "\u00A1Cliente actualizado!",
+  "clients.saveClient": "Guardar Cambios",
   "team.removeMember": "Eliminar Miembro",
   "team.memberRemoved": "\u00A1Miembro eliminado!",
   "team.memberUpdated": "\u00A1Miembro actualizado!",
