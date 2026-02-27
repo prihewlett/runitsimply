@@ -6,13 +6,21 @@ import { CheckIcon, GiftIcon } from "@/components/icons";
 import { useLanguage } from "@/lib/language-context";
 import type { TranslationKey } from "@/lib/i18n";
 
-const ALL_FEATURES: TranslationKey[] = [
+const STARTER_KEYS: TranslationKey[] = [
   "pricing.scheduling",
+  "pricing.team3",
   "pricing.clientDb",
-  "pricing.messaging",
   "pricing.basicInvoicing",
+  "pricing.messaging",
+];
+
+const PRO_KEYS: TranslationKey[] = [
+  "pricing.everythingStarter",
   "pricing.unlimitedClients",
+  "pricing.venmoZelle",
+  "pricing.stripeAuto",
   "pricing.smsReminders",
+  "pricing.gpsVerification",
 ];
 
 export function Pricing() {
@@ -46,13 +54,53 @@ export function Pricing() {
         <p className="mb-10 font-body text-base text-gray-500">
           {t("pricing.subtitle")}
         </p>
-        <div className="mx-auto max-w-sm">
-          <div className="rounded-[18px] bg-gradient-to-br from-slate-800 to-blue-800 p-7 text-left text-white shadow-[0_12px_40px_rgba(0,0,0,0.1)]">
+        <div className="grid grid-cols-1 gap-[18px] md:grid-cols-2">
+          {/* Starter */}
+          <div className="rounded-[18px] border border-[#F0F2F5] bg-white p-7 text-left shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <div className="font-body text-sm font-semibold text-gray-500">
+              {t("pricing.starter")}
+            </div>
             <div className="text-4xl font-extrabold">{t("pricing.freeTrial")}</div>
-            <div className="mb-5 font-body text-xs text-white/50">
+            <div className="mb-5 font-body text-xs text-gray-400">
               {t("pricing.trialDuration")}
             </div>
-            {ALL_FEATURES.map((key) => (
+            {STARTER_KEYS.map((key) => (
+              <div
+                key={key}
+                className="mb-2 flex items-center gap-2 font-body text-sm text-gray-500"
+              >
+                <span className="text-emerald-600">
+                  <CheckIcon />
+                </span>
+                {t(key)}
+              </div>
+            ))}
+            <Link
+              href="/signup"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-[11px] border-[1.5px] border-[#F0F2F5] bg-[#FAFBFD] px-5 py-2.5 text-sm font-semibold text-gray-500"
+            >
+              {t("pricing.startFreeTrial")}
+            </Link>
+          </div>
+
+          {/* Pro */}
+          <div className="relative rounded-[18px] bg-gradient-to-br from-slate-800 to-blue-800 p-7 text-left text-white shadow-[0_12px_40px_rgba(0,0,0,0.1)]">
+            <div className="absolute right-3.5 top-3.5 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold">
+              {t("pricing.popular")}
+            </div>
+            <div className="font-body text-sm font-semibold text-white/60">
+              {t("pricing.pro")}
+            </div>
+            <div className="text-4xl font-extrabold">
+              $24.99
+              <span className="text-[15px] font-medium opacity-60">
+                {t("pricing.perMonth")}
+              </span>
+            </div>
+            <div className="mb-5 font-body text-xs text-white/50">
+              {t("pricing.unlimited")}
+            </div>
+            {PRO_KEYS.map((key) => (
               <div
                 key={key}
                 className="mb-2 flex items-center gap-2 font-body text-sm text-white/80"
@@ -67,7 +115,7 @@ export function Pricing() {
               href="/signup"
               className="mt-4 inline-flex w-full items-center justify-center rounded-[11px] bg-white px-5 py-2.5 text-sm font-semibold text-blue-800"
             >
-              {t("pricing.startFreeTrial")}
+              {t("pricing.signUp")}
             </Link>
           </div>
         </div>
