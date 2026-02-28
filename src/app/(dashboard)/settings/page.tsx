@@ -120,15 +120,45 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Show upgrade button for non-active subscriptions */}
+          {/* Show upgrade options for non-active subscriptions */}
           {subscriptionStatus !== "active" && (
-            <button
-              onClick={handleUpgrade}
-              disabled={upgrading}
-              className="w-full cursor-pointer rounded-[11px] bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:from-blue-700 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {upgrading ? t("settings.upgrading") : t("settings.upgradeToPro")}
-            </button>
+            <div className="space-y-4">
+              {/* Option 1: Stripe Checkout (card, Cash App, ACH) */}
+              <button
+                onClick={handleUpgrade}
+                disabled={upgrading}
+                className="w-full cursor-pointer rounded-[11px] bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:from-blue-700 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {upgrading ? t("settings.upgrading") : t("settings.payWithCard")}
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-gray-200" />
+                <span className="font-body text-xs text-gray-400">
+                  {t("settings.orPayManually")}
+                </span>
+                <div className="h-px flex-1 bg-gray-200" />
+              </div>
+
+              {/* Option 2: Manual payment info */}
+              <div className="rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-4">
+                <p className="mb-3 font-body text-xs text-gray-500">
+                  {t("settings.manualPaymentDesc")}
+                </p>
+                <div className="mb-3 space-y-1.5">
+                  <p className="font-body text-sm font-semibold text-gray-700">
+                    {t("settings.manualPaymentVenmo")}
+                  </p>
+                  <p className="font-body text-sm font-semibold text-gray-700">
+                    {t("settings.manualPaymentZelle")}
+                  </p>
+                </div>
+                <p className="font-body text-xs text-gray-400">
+                  {t("settings.manualPaymentContact")}
+                </p>
+              </div>
+            </div>
           )}
         </div>
 

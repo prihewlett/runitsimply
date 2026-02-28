@@ -627,6 +627,14 @@ const en = {
   "settings.manageBilling": "Manage Billing",
   "settings.upgradeSuccess": "Welcome to Pro! Your subscription is now active.",
   "settings.stripeNotConfigured": "Payment system is being set up. Please try again later.",
+
+  // ── Settings: Manual Payment Option ──
+  "settings.orPayManually": "Or pay directly via Venmo/Zelle",
+  "settings.manualPaymentDesc": "Send $19.99/mo to the account below, then contact us to activate your Pro plan.",
+  "settings.manualPaymentVenmo": "Venmo: @priscilla-hewlett",
+  "settings.manualPaymentZelle": "Zelle: prihewlett@gmail.com",
+  "settings.manualPaymentContact": "After sending payment, email prihewlett@gmail.com to activate.",
+  "settings.payWithCard": "Pay with Card, Cash App, or Bank",
 } as const;
 
 const es: Record<TranslationKey, string> = {
@@ -1253,6 +1261,14 @@ const es: Record<TranslationKey, string> = {
   "settings.manageBilling": "Administrar Facturaci\u00F3n",
   "settings.upgradeSuccess": "\u00A1Bienvenido a Pro! Tu suscripci\u00F3n est\u00E1 activa.",
   "settings.stripeNotConfigured": "El sistema de pagos est\u00E1 en configuraci\u00F3n. Int\u00E9ntalo m\u00E1s tarde.",
+
+  // ── Settings: Manual Payment Option ──
+  "settings.orPayManually": "O paga directamente por Venmo/Zelle",
+  "settings.manualPaymentDesc": "Env\u00EDa $19.99/mes a la cuenta de abajo, luego cont\u00E1ctanos para activar tu plan Pro.",
+  "settings.manualPaymentVenmo": "Venmo: @priscilla-hewlett",
+  "settings.manualPaymentZelle": "Zelle: prihewlett@gmail.com",
+  "settings.manualPaymentContact": "Despu\u00E9s de enviar el pago, escr\u00EDbenos a prihewlett@gmail.com para activar.",
+  "settings.payWithCard": "Pagar con Tarjeta, Cash App, o Banco",
 };
 
 export const dictionaries = { en, es } as const;
