@@ -92,7 +92,7 @@ export function Pricing() {
               {t("pricing.pro")}
             </div>
             <div className="text-4xl font-extrabold">
-              $24.99
+              $19.99
               <span className="text-[15px] font-medium opacity-60">
                 {t("pricing.perMonth")}
               </span>

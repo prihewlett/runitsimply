@@ -37,6 +37,9 @@ export function SendInvoiceModal({
   const invoiceLink = `https://pay.runitsimply.com/inv/${invoiceId}`;
 
   const paymentLines: string[] = [];
+  const venmoDeepLink = settings.venmoHandle
+    ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${job.amount}&note=${encodeURIComponent(invoiceId)}`
+    : "";
   if (settings.venmoHandle) {
     paymentLines.push(`Venmo: @${settings.venmoHandle}`);
   }
@@ -50,7 +53,7 @@ export function SendInvoiceModal({
   const emailSubject = t("invoice.invoiceFor", { business: biz });
   const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${job.amount} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.invoiceLink")}: ${invoiceLink}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
 
-  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${job.amount} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}. ${invoiceLink}`;
+  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${job.amount} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""} ${invoiceLink}`;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(invoiceLink);
@@ -183,32 +186,45 @@ export function SendInvoiceModal({
         </div>
         <div className="flex flex-wrap gap-2">
           {settings.venmoHandle && (
-            <button
-              onClick={async () => {
-                await navigator.clipboard.writeText(`@${settings.venmoHandle}`);
-                setCopiedPayment("venmo");
-                setTimeout(() => setCopiedPayment(null), 2000);
-              }}
-              className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 transition-all ${
-                copiedPayment === "venmo"
-                  ? "border-blue-400 ring-2 ring-blue-200"
-                  : "border-[#F0F2F5] hover:border-blue-300"
-              }`}
-              style={{ background: PAYMENT_INFO.Venmo.bg }}
-            >
-              <span
-                className="flex h-6 w-6 items-center justify-center rounded-md text-xs font-bold text-white"
-                style={{ background: PAYMENT_INFO.Venmo.color }}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(`@${settings.venmoHandle}`);
+                  setCopiedPayment("venmo");
+                  setTimeout(() => setCopiedPayment(null), 2000);
+                }}
+                className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 transition-all ${
+                  copiedPayment === "venmo"
+                    ? "border-blue-400 ring-2 ring-blue-200"
+                    : "border-[#F0F2F5] hover:border-blue-300"
+                }`}
+                style={{ background: PAYMENT_INFO.Venmo.bg }}
               >
-                {PAYMENT_INFO.Venmo.icon}
-              </span>
-              <span
-                className="text-xs font-semibold"
-                style={{ color: PAYMENT_INFO.Venmo.color }}
-              >
-                {copiedPayment === "venmo" ? t("invoice.linkCopied") : `@${settings.venmoHandle}`}
-              </span>
-            </button>
+                <span
+                  className="flex h-6 w-6 items-center justify-center rounded-md text-xs font-bold text-white"
+                  style={{ background: PAYMENT_INFO.Venmo.color }}
+                >
+                  {PAYMENT_INFO.Venmo.icon}
+                </span>
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: PAYMENT_INFO.Venmo.color }}
+                >
+                  {copiedPayment === "venmo" ? t("invoice.linkCopied") : `@${settings.venmoHandle}`}
+                </span>
+              </button>
+              {venmoDeepLink && (
+                <a
+                  href={venmoDeepLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-2 text-xs font-semibold transition-all hover:border-blue-300"
+                  style={{ background: PAYMENT_INFO.Venmo.bg, color: PAYMENT_INFO.Venmo.color }}
+                >
+                  Pay with Venmo
+                </a>
+              )}
+            </div>
           )}
           {settings.zelleEmail && (
             <button

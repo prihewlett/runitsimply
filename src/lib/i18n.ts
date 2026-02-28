@@ -528,6 +528,14 @@ const en = {
   // ── Schedule: Validation ──
   "schedule.formError": "Please fill in all required fields (client, date, time, duration).",
 
+  // ── Schedule: SMS Reminders ──
+  "schedule.sendReminders": "Send Reminders",
+  "schedule.sendingReminders": "Sending...",
+  "schedule.remindersSent": "{{count}} reminder(s) sent!",
+  "schedule.noTomorrowJobs": "No jobs scheduled for tomorrow.",
+  "schedule.remindersNoPhones": "No client phone numbers on file for tomorrow's jobs.",
+  "schedule.reminderFailed": "Failed to send reminders. Check Twilio configuration.",
+
   // ── Clients: Frequency Options ──
   "clients.weekly": "Weekly",
   "clients.biweekly": "Bi-weekly",
@@ -551,6 +559,18 @@ const en = {
   // ── Team: Placeholders ──
   "team.placeholderName": "John Smith",
   "team.placeholderRole": "Technician",
+
+  // ── Team: GPS Verification ──
+  "team.clockInNow": "Clock In Now",
+  "team.clockOutNow": "Clock Out Now",
+  "team.gpsVerified": "GPS Verified",
+  "team.gpsCapturing": "Capturing location...",
+  "team.gpsPermissionDenied": "Location access denied. Entry saved without GPS.",
+  "team.gpsNotAvailable": "GPS not available on this device.",
+  "team.viewOnMap": "View on Map",
+  "team.activeShift": "Active Shift",
+  "team.clockedInAt": "Clocked in at {{time}}",
+  "team.noActiveShift": "No active shift",
 
   // ── Invoice Sending ──
   "invoice.sendInvoice": "Send Invoice",
@@ -591,6 +611,22 @@ const en = {
   "trial.subscribeNow": "Subscribe Now",
   "trial.upgradeNow": "Upgrade Now",
   "trial.readOnlyNotice": "Read-only mode \u2014 upgrade to make changes",
+
+  // ── Settings: Subscription ──
+  "settings.subscription": "Subscription",
+  "settings.subscriptionDesc": "Manage your RunItSimply subscription plan.",
+  "settings.currentPlan": "CURRENT PLAN",
+  "settings.trialPlan": "Free Trial",
+  "settings.proPlan": "Pro Plan",
+  "settings.trialDaysLeft": "{{count}} day(s) remaining",
+  "settings.trialExpired": "Trial Expired",
+  "settings.proActive": "Active",
+  "settings.proCancelled": "Cancelled",
+  "settings.upgradeToPro": "Upgrade to Pro \u2014 $19.99/mo",
+  "settings.upgrading": "Redirecting to checkout...",
+  "settings.manageBilling": "Manage Billing",
+  "settings.upgradeSuccess": "Welcome to Pro! Your subscription is now active.",
+  "settings.stripeNotConfigured": "Payment system is being set up. Please try again later.",
 } as const;
 
 const es: Record<TranslationKey, string> = {
@@ -1118,6 +1154,14 @@ const es: Record<TranslationKey, string> = {
   // ── Schedule: Validation ──
   "schedule.formError": "Por favor completa todos los campos requeridos (cliente, fecha, hora, duraci\u00F3n).",
 
+  // ── Schedule: SMS Reminders ──
+  "schedule.sendReminders": "Enviar Recordatorios",
+  "schedule.sendingReminders": "Enviando...",
+  "schedule.remindersSent": "\u00A1{{count}} recordatorio(s) enviado(s)!",
+  "schedule.noTomorrowJobs": "No hay trabajos programados para ma\u00F1ana.",
+  "schedule.remindersNoPhones": "No hay n\u00FAmeros de tel\u00E9fono para los trabajos de ma\u00F1ana.",
+  "schedule.reminderFailed": "Error al enviar recordatorios. Verifica la configuraci\u00F3n de Twilio.",
+
   // ── Clients: Frequency Options ──
   "clients.weekly": "Semanal",
   "clients.biweekly": "Quincenal",
@@ -1141,6 +1185,18 @@ const es: Record<TranslationKey, string> = {
   // ── Team: Placeholders ──
   "team.placeholderName": "Juan Garc\u00EDa",
   "team.placeholderRole": "T\u00E9cnico",
+
+  // ── Team: GPS Verification ──
+  "team.clockInNow": "Registrar Entrada",
+  "team.clockOutNow": "Registrar Salida",
+  "team.gpsVerified": "GPS Verificado",
+  "team.gpsCapturing": "Capturando ubicaci\u00F3n...",
+  "team.gpsPermissionDenied": "Acceso a ubicaci\u00F3n denegado. Registro guardado sin GPS.",
+  "team.gpsNotAvailable": "GPS no disponible en este dispositivo.",
+  "team.viewOnMap": "Ver en Mapa",
+  "team.activeShift": "Turno Activo",
+  "team.clockedInAt": "Entrada a las {{time}}",
+  "team.noActiveShift": "Sin turno activo",
 
   // ── Invoice Sending ──
   "invoice.sendInvoice": "Enviar Factura",
@@ -1181,6 +1237,22 @@ const es: Record<TranslationKey, string> = {
   "trial.subscribeNow": "Suscribirse Ahora",
   "trial.upgradeNow": "Actualizar Ahora",
   "trial.readOnlyNotice": "Modo solo lectura \u2014 actualiza para hacer cambios",
+
+  // ── Settings: Subscription ──
+  "settings.subscription": "Suscripci\u00F3n",
+  "settings.subscriptionDesc": "Administra tu plan de suscripci\u00F3n de RunItSimply.",
+  "settings.currentPlan": "PLAN ACTUAL",
+  "settings.trialPlan": "Prueba Gratuita",
+  "settings.proPlan": "Plan Pro",
+  "settings.trialDaysLeft": "{{count}} d\u00EDa(s) restante(s)",
+  "settings.trialExpired": "Prueba Expirada",
+  "settings.proActive": "Activo",
+  "settings.proCancelled": "Cancelado",
+  "settings.upgradeToPro": "Actualizar a Pro \u2014 $19.99/mes",
+  "settings.upgrading": "Redirigiendo al pago...",
+  "settings.manageBilling": "Administrar Facturaci\u00F3n",
+  "settings.upgradeSuccess": "\u00A1Bienvenido a Pro! Tu suscripci\u00F3n est\u00E1 activa.",
+  "settings.stripeNotConfigured": "El sistema de pagos est\u00E1 en configuraci\u00F3n. Int\u00E9ntalo m\u00E1s tarde.",
 };
 
 export const dictionaries = { en, es } as const;

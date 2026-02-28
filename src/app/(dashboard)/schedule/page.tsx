@@ -69,6 +69,10 @@ export default function SchedulePage() {
   const [jobUpdated, setJobUpdated] = useState(false);
   const [formError, setFormError] = useState(false);
 
+  // SMS Reminders state
+  const [sendingReminders, setSendingReminders] = useState(false);
+  const [reminderResult, setReminderResult] = useState<string | null>(null);
+
   // Job detail/edit state
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [editing, setEditing] = useState(false);
@@ -356,6 +360,28 @@ export default function SchedulePage() {
   const detailBt = detailClient ? BUSINESS_TYPES.find((b) => b.id === detailClient.serviceType) : null;
   const detailAssignees = selectedJob ? EMPLOYEES.filter((e) => selectedJob.employeeIds.includes(e.id)) : [];
 
+  // Send SMS reminders for tomorrow's jobs
+  const handleSendReminders = async () => {
+    setSendingReminders(true);
+    setReminderResult(null);
+    try {
+      const res = await fetch("/api/send-reminders", { method: "POST" });
+      const data = await res.json();
+      if (data.sent > 0) {
+        setReminderResult(t("schedule.remindersSent", { count: data.sent }));
+      } else if (data.skipped > 0 && data.sent === 0) {
+        setReminderResult(t("schedule.remindersNoPhones"));
+      } else {
+        setReminderResult(t("schedule.noTomorrowJobs"));
+      }
+    } catch {
+      setReminderResult(t("schedule.reminderFailed"));
+    } finally {
+      setSendingReminders(false);
+      setTimeout(() => setReminderResult(null), 4000);
+    }
+  };
+
   return (
     <div>
       <PageHeader
@@ -363,12 +389,21 @@ export default function SchedulePage() {
         subtitle={t("schedule.subtitle")}
         action={
           isOwner && !isReadOnly ? (
-            <ButtonPrimary
-              icon={<PlusIcon size={16} />}
-              onClick={() => setShowNewJob(true)}
-            >
-              {t("schedule.newJob")}
-            </ButtonPrimary>
+            <div className="flex gap-2">
+              <ButtonSecondary
+                onClick={handleSendReminders}
+                disabled={sendingReminders}
+              >
+                <SendIcon size={16} />
+                {sendingReminders ? t("schedule.sendingReminders") : t("schedule.sendReminders")}
+              </ButtonSecondary>
+              <ButtonPrimary
+                icon={<PlusIcon size={16} />}
+                onClick={() => setShowNewJob(true)}
+              >
+                {t("schedule.newJob")}
+              </ButtonPrimary>
+            </div>
           ) : undefined
         }
       />
@@ -386,6 +421,14 @@ export default function SchedulePage() {
         <div role="status" aria-live="polite" className="mb-4 flex items-center gap-2 rounded-[10px] bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
           <CheckIcon size={16} />
           {t("schedule.jobUpdated")}
+        </div>
+      )}
+
+      {/* Reminder result toast */}
+      {reminderResult && (
+        <div role="status" aria-live="polite" className="mb-4 flex items-center gap-2 rounded-[10px] bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700">
+          <SendIcon size={16} />
+          {reminderResult}
         </div>
       )}
 

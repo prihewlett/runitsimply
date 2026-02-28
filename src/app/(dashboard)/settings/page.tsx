@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { FormInput } from "@/components/ui/form-input";
 import { GiftIcon } from "@/components/icons";
@@ -8,11 +8,41 @@ import { useLanguage } from "@/lib/language-context";
 import { useSettings } from "@/lib/settings-context";
 
 export default function SettingsPage() {
-  const { settings, updateSettings: rawUpdateSettings, isReadOnly } = useSettings();
+  const { settings, updateSettings: rawUpdateSettings, isReadOnly, daysLeftInTrial, subscriptionStatus } = useSettings();
   const { t } = useLanguage();
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
+  const [upgradeToast, setUpgradeToast] = useState(false);
+
+  // Show success toast if redirected from Stripe checkout
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgraded") === "true") {
+      setUpgradeToast(true);
+      setTimeout(() => setUpgradeToast(false), 5000);
+      // Clean URL
+      window.history.replaceState({}, "", "/settings");
+    }
+  }, []);
+
+  const handleUpgrade = async () => {
+    setUpgrading(true);
+    try {
+      const res = await fetch("/api/stripe/create-checkout", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || t("settings.stripeNotConfigured"));
+        setUpgrading(false);
+      }
+    } catch {
+      alert(t("settings.stripeNotConfigured"));
+      setUpgrading(false);
+    }
+  };
 
   const updateSettings = (partial: Parameters<typeof rawUpdateSettings>[0]) => {
     rawUpdateSettings(partial);
@@ -41,6 +71,67 @@ export default function SettingsPage() {
       />
 
       <div className="max-w-lg space-y-6">
+        {/* Subscription */}
+        <div className="rounded-[14px] border border-[#F0F2F5] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+          <h3 className="mb-1 text-base font-bold">{t("settings.subscription")}</h3>
+          <p className="mb-4 font-body text-xs text-gray-400">
+            {t("settings.subscriptionDesc")}
+          </p>
+
+          <div className="mb-4">
+            <label className="mb-1.5 block font-body text-[11px] font-semibold text-gray-400">
+              {t("settings.currentPlan")}
+            </label>
+            <div className="flex items-center gap-3">
+              {subscriptionStatus === "active" ? (
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700">
+                    {t("settings.proPlan")}
+                  </span>
+                  <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-600">
+                    {t("settings.proActive")}
+                  </span>
+                </div>
+              ) : subscriptionStatus === "cancelled" ? (
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold text-gray-600">
+                    {t("settings.proPlan")}
+                  </span>
+                  <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-600">
+                    {t("settings.proCancelled")}
+                  </span>
+                </div>
+              ) : subscriptionStatus === "expired" || (subscriptionStatus === "trial" && daysLeftInTrial <= 0) ? (
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-bold text-red-700">
+                    {t("settings.trialExpired")}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-700">
+                    {t("settings.trialPlan")}
+                  </span>
+                  <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
+                    {t("settings.trialDaysLeft").replace("{{count}}", String(daysLeftInTrial))}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Show upgrade button for non-active subscriptions */}
+          {subscriptionStatus !== "active" && (
+            <button
+              onClick={handleUpgrade}
+              disabled={upgrading}
+              className="w-full cursor-pointer rounded-[11px] bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:from-blue-700 hover:to-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {upgrading ? t("settings.upgrading") : t("settings.upgradeToPro")}
+            </button>
+          )}
+        </div>
+
         {/* Payment Settings */}
         <div className="rounded-[14px] border border-[#F0F2F5] bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
           <h3 className="mb-1 text-base font-bold">{t("settings.paymentSetup")}</h3>
@@ -273,6 +364,13 @@ export default function SettingsPage() {
       {saved && (
         <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {t("settings.saved")}
+        </div>
+      )}
+
+      {/* Upgrade success toast */}
+      {upgradeToast && (
+        <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {t("settings.upgradeSuccess")}
         </div>
       )}
     </div>

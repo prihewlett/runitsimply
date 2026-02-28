@@ -56,6 +56,7 @@ function rowToSettings(row: Record<string, unknown>): BusinessSettings {
     businessEmail: (row.email as string) ?? "",
     trialEndsAt: (row.trial_ends_at as string) ?? undefined,
     subscriptionStatus: (row.subscription_status as SubscriptionStatus) ?? "trial",
+    stripeCustomerId: (row.stripe_customer_id as string) ?? undefined,
   };
 }
 

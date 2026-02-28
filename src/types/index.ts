@@ -73,6 +73,12 @@ export interface TimeEntry {
   clockIn: string;
   clockOut: string;
   hours: number;
+  clockInLat?: number | null;
+  clockInLng?: number | null;
+  clockOutLat?: number | null;
+  clockOutLng?: number | null;
+  clockInAccuracy?: number | null;
+  clockOutAccuracy?: number | null;
 }
 
 export interface BusinessSettings {
@@ -89,6 +95,7 @@ export interface BusinessSettings {
   businessEmail?: string;
   trialEndsAt?: string;
   subscriptionStatus?: SubscriptionStatus;
+  stripeCustomerId?: string;
 }
 
 export interface BusinessType {

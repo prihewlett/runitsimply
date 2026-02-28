@@ -139,6 +139,12 @@ function rowToTimeEntry(row: Record<string, unknown>): TimeEntry {
     clockIn: row.clock_in as string,
     clockOut: row.clock_out as string,
     hours: Number(row.hours),
+    clockInLat: row.clock_in_lat != null ? Number(row.clock_in_lat) : null,
+    clockInLng: row.clock_in_lng != null ? Number(row.clock_in_lng) : null,
+    clockOutLat: row.clock_out_lat != null ? Number(row.clock_out_lat) : null,
+    clockOutLng: row.clock_out_lng != null ? Number(row.clock_out_lng) : null,
+    clockInAccuracy: row.clock_in_accuracy != null ? Number(row.clock_in_accuracy) : null,
+    clockOutAccuracy: row.clock_out_accuracy != null ? Number(row.clock_out_accuracy) : null,
   };
 }
 
@@ -507,6 +513,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           clock_in: te.clockIn,
           clock_out: te.clockOut,
           hours: te.hours,
+          clock_in_lat: te.clockInLat ?? null,
+          clock_in_lng: te.clockInLng ?? null,
+          clock_out_lat: te.clockOutLat ?? null,
+          clock_out_lng: te.clockOutLng ?? null,
+          clock_in_accuracy: te.clockInAccuracy ?? null,
+          clock_out_accuracy: te.clockOutAccuracy ?? null,
         }))
       );
       if (error) log.error("syncTimeEntries", "upsert failed", { businessId, error });
