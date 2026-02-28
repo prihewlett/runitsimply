@@ -161,7 +161,7 @@ function rowToMessage(
 /* ────────────────────────── Provider ────────────────────────── */
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const { profile } = useAuth();
+  const { profile, authReady } = useAuth();
   const businessId = profile?.businessId ?? null;
   const { isReadOnly } = useSettings();
 
@@ -179,6 +179,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // ─── Initial load ───
   useEffect(() => {
     if (useSupabase.current) {
+      // Wait for auth to finish initializing before deciding whether to fetch
+      if (!authReady) {
+        log.debug("fetchAll", "waiting for auth to be ready");
+        return;
+      }
+
       // Wait for profile/businessId to be available before fetching
       if (!businessId) {
         log.warn("fetchAll", "no businessId available - skipping data fetch (dashboard will be empty)", {
@@ -324,7 +330,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       loadLS(EXPENSE_CATEGORIES_KEY, setExpenseCategoriesRaw);
       setLoading(false);
     }
-  }, [businessId]);
+  }, [businessId, authReady]);
 
   // ─── Supabase sync helpers ───
 

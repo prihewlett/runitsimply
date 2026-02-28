@@ -33,11 +33,11 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${sora.variable}`}>
       <body className="bg-[#FAFBFD] font-heading text-[#1A1D26] antialiased">
         <LanguageProvider>
-          <SettingsProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <SettingsProvider>
               <DataProvider>{children}</DataProvider>
-            </AuthProvider>
-          </SettingsProvider>
+            </SettingsProvider>
+          </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
