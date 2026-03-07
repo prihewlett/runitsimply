@@ -365,7 +365,22 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           service_rate_type: c.serviceRateType ?? null,
         }))
       );
-      if (error) log.error("syncClients", "upsert failed", { businessId, error });
+      if (error) { log.error("syncClients", "upsert failed", { businessId, error }); return; }
+
+      // Delete records that were removed from local state
+      if (next.length > 0) {
+        const currentIds = next.map((c) => c.id);
+        const { data: existing } = await supabase.from("clients").select("id");
+        const toDelete = (existing ?? []).map((r: Record<string, unknown>) => r.id as string).filter((id) => !currentIds.includes(id));
+        if (toDelete.length > 0) {
+          const { error: delErr } = await supabase.from("clients").delete().in("id", toDelete);
+          if (delErr) log.error("syncClients", "delete failed", { businessId, error: delErr });
+        }
+      } else {
+        // All clients removed — delete all for this business
+        const { error: delErr } = await supabase.from("clients").delete().eq("business_id", businessId);
+        if (delErr) log.error("syncClients", "delete-all failed", { businessId, error: delErr });
+      }
     } catch (err) {
       log.error("syncClients", "unexpected exception", { businessId, error: err instanceof Error ? err : String(err) });
     }
@@ -401,7 +416,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           series_id: j.seriesId ?? null,
         }))
       );
-      if (error) log.error("syncJobs", "upsert failed", { businessId, error });
+      if (error) { log.error("syncJobs", "upsert failed", { businessId, error }); return; }
+
+      // Delete jobs that were removed from local state (cascade deletes job_employees)
+      if (next.length > 0) {
+        const currentIds = next.map((j) => j.id);
+        const { data: existing } = await supabase.from("jobs").select("id");
+        const toDelete = (existing ?? []).map((r: Record<string, unknown>) => r.id as string).filter((id) => !currentIds.includes(id));
+        if (toDelete.length > 0) {
+          const { error: delErr } = await supabase.from("jobs").delete().in("id", toDelete);
+          if (delErr) log.error("syncJobs", "delete failed", { businessId, error: delErr });
+        }
+      } else {
+        const { error: delErr } = await supabase.from("jobs").delete().eq("business_id", businessId);
+        if (delErr) log.error("syncJobs", "delete-all failed", { businessId, error: delErr });
+      }
 
       // Sync job_employees junction table
       const jobIds = next.map((j) => j.id);

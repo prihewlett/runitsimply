@@ -408,6 +408,13 @@ export default function SchedulePage() {
         }
       />
 
+      {/* Read-only banner */}
+      {isReadOnly && (
+        <div className="mb-4 rounded-[10px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+          Your trial has expired — data cannot be saved until your subscription is activated.
+        </div>
+      )}
+
       {/* Job added toast */}
       {jobAdded && (
         <div role="status" aria-live="polite" className="mb-4 flex items-center gap-2 rounded-[10px] bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">

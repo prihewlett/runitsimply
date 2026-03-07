@@ -36,9 +36,16 @@ export function SendInvoiceModal({
   const invoiceId = `INV-${job.id.slice(-8).toUpperCase()}`;
   const invoiceLink = `https://pay.runitsimply.com/inv/${invoiceId}`;
 
+  // Calculate total: hourly rate × hours, or flat amount
+  const totalAmount =
+    job.rateType === "hourly" && job.duration
+      ? job.amount * job.duration
+      : job.amount;
+  const totalAmountStr = totalAmount.toFixed(2);
+
   const paymentLines: string[] = [];
   const venmoDeepLink = settings.venmoHandle
-    ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${job.amount}&note=${encodeURIComponent(invoiceId)}`
+    ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${totalAmountStr}&note=${encodeURIComponent(invoiceId)}`
     : "";
   if (settings.venmoHandle) {
     paymentLines.push(`Venmo: @${settings.venmoHandle}`);
@@ -51,9 +58,13 @@ export function SendInvoiceModal({
   const bizPhone = settings.businessPhone ?? "";
 
   const emailSubject = t("invoice.invoiceFor", { business: biz });
-  const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${job.amount} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.invoiceLink")}: ${invoiceLink}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
+  const rateBreakdown =
+    job.rateType === "hourly" && job.duration
+      ? ` (${job.duration} hrs × $${job.amount}/hr)`
+      : "";
+  const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.invoiceLink")}: ${invoiceLink}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
 
-  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${job.amount} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""} ${invoiceLink}`;
+  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""} ${invoiceLink}`;
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(invoiceLink);
@@ -158,7 +169,12 @@ export function SendInvoiceModal({
             <div className="font-body text-[11px] font-semibold text-gray-400">
               {t("invoice.amountDue")}
             </div>
-            <div className="text-2xl font-extrabold">${job.amount}</div>
+            <div className="text-2xl font-extrabold">${totalAmountStr}</div>
+            {job.rateType === "hourly" && job.duration && (
+              <div className="font-body text-[10px] text-gray-400">
+                {job.duration} hrs × ${job.amount}/hr
+              </div>
+            )}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">
