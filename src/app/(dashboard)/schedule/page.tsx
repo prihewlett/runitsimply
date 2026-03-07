@@ -44,6 +44,63 @@ function advanceDate(current: Date, rule: "weekly" | "biweekly" | "monthly"): Da
   return next;
 }
 
+// Generate recurring instances for a parent job within a given date range
+function generateInstances(
+  parent: Job,
+  startDate: string,
+  endDate: string,
+  existingJobs: Job[]
+): Job[] {
+  const rule = parent.recurrenceRule;
+  if (!rule) return [];
+
+  const seriesId = parent.seriesId || parent.id;
+  let current = new Date(parent.date);
+  const rangeStart = new Date(startDate);
+  const rangeEnd = new Date(endDate);
+  const recEnd = parent.recurrenceEndDate ? new Date(parent.recurrenceEndDate) : null;
+  const newJobs: Job[] = [];
+
+  // Advance past range start
+  while (current < rangeStart) {
+    current = advanceDate(current, rule);
+  }
+
+  // Generate instances within range
+  while (current <= rangeEnd) {
+    if (recEnd && current > recEnd) break;
+    const dateStr = toDateString(current);
+
+    if (dateStr !== parent.date) {
+      const exists =
+        existingJobs.some((j) => j.seriesId === seriesId && j.date === dateStr) ||
+        newJobs.some((j) => j.seriesId === seriesId && j.date === dateStr);
+
+      if (!exists) {
+        newJobs.push({
+          id: crypto.randomUUID(),
+          clientId: parent.clientId,
+          employeeIds: [...parent.employeeIds],
+          date: dateStr,
+          time: parent.time,
+          duration: parent.duration,
+          status: "scheduled",
+          amount: parent.amount,
+          rateType: parent.rateType,
+          paymentStatus: "pending",
+          isRecurring: false,
+          parentJobId: parent.id,
+          seriesId,
+        });
+      }
+    }
+
+    current = advanceDate(current, rule);
+  }
+
+  return newJobs;
+}
+
 const DEFAULT_FORM = {
   clientId: "",
   date: "",
@@ -98,62 +155,14 @@ export default function SchedulePage() {
     const parentJobs = jobs.filter((j) => j.isRecurring && !j.parentJobId);
     if (parentJobs.length === 0) return;
 
-    const rangeStart = new Date(startDate);
-    const rangeEnd = new Date(endDate);
-    const newJobs: Job[] = [];
-
-    for (const parent of parentJobs) {
-      const rule = parent.recurrenceRule;
-      if (!rule) continue;
-
-      const seriesId = parent.seriesId || parent.id;
-      let current = new Date(parent.date);
-      const recEnd = parent.recurrenceEndDate ? new Date(parent.recurrenceEndDate) : null;
-
-      // Advance to range start
-      while (current < rangeStart) {
-        current = advanceDate(current, rule);
+    setJobs((prev) => {
+      let next = [...prev];
+      for (const parent of parentJobs) {
+        const instances = generateInstances(parent, startDate, endDate, next);
+        next = [...next, ...instances];
       }
-
-      // Generate instances
-      while (current <= rangeEnd) {
-        if (recEnd && current > recEnd) break;
-        const dateStr = toDateString(current);
-
-        // Skip if parent date or instance already exists
-        if (dateStr !== parent.date) {
-          const exists = jobs.some(
-            (j) => j.seriesId === seriesId && j.date === dateStr
-          ) || newJobs.some(
-            (j) => j.seriesId === seriesId && j.date === dateStr
-          );
-
-          if (!exists) {
-            newJobs.push({
-              id: crypto.randomUUID(),
-              clientId: parent.clientId,
-              employeeIds: [...parent.employeeIds],
-              date: dateStr,
-              time: parent.time,
-              duration: parent.duration,
-              status: "scheduled",
-              amount: parent.amount,
-              rateType: parent.rateType,
-              paymentStatus: "pending",
-              isRecurring: false,
-              parentJobId: parent.id,
-              seriesId,
-            });
-          }
-        }
-
-        current = advanceDate(current, rule);
-      }
-    }
-
-    if (newJobs.length > 0) {
-      setJobs((prev) => [...prev, ...newJobs]);
-    }
+      return next.length === prev.length ? prev : next;
+    });
   }, [view, weekOffset, monthOffset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const DAYS_SHORT = [
@@ -232,7 +241,22 @@ export default function SchedulePage() {
       seriesId,
     };
 
-    setJobs((prev) => [...prev, newJob]);
+    const startDate = view === "week" ? toDateString(weekDates[0]) : toDateString(monthDates[0]);
+    const endDate = view === "week" ? toDateString(weekDates[6]) : toDateString(monthDates[monthDates.length - 1]);
+    const rangeKey = `${startDate}_${endDate}`;
+
+    setJobs((prev) => {
+      const instances = newJob.isRecurring
+        ? generateInstances(newJob, startDate, endDate, [...prev, newJob])
+        : [];
+      return [...prev, newJob, ...instances];
+    });
+
+    // Clear cache so the useEffect will re-run for this range if the view changes back
+    if (newJob.isRecurring) {
+      generatedRef.current.delete(rangeKey);
+    }
+
     setShowNewJob(false);
     setForm(DEFAULT_FORM);
     setJobAdded(true);
@@ -294,9 +318,31 @@ export default function SchedulePage() {
       duration: Number(editForm.duration),
       amount: Number(editForm.amount) || 0,
       rateType: editForm.rateType,
+      isRecurring: !!editForm.recurrenceRule,
+      recurrenceRule: (editForm.recurrenceRule || undefined) as Job["recurrenceRule"],
+      recurrenceEndDate: editForm.recurrenceEndDate || undefined,
     };
 
-    setJobs((prev) => prev.map((j) => (j.id === updated.id ? updated : j)));
+    const isParent = !selectedJob.parentJobId;
+    const recurrenceChanged =
+      (selectedJob.recurrenceRule ?? "") !== editForm.recurrenceRule;
+
+    setJobs((prev) => {
+      let result = prev.map((j) => (j.id === updated.id ? updated : j));
+      // If recurrence changed on a parent job, remove stale child instances
+      if (isParent && recurrenceChanged && updated.seriesId) {
+        result = result.filter(
+          (j) => j.seriesId !== updated.seriesId || j.id === updated.id
+        );
+      }
+      return result;
+    });
+
+    // Clear cached ranges so useEffect regenerates fresh instances
+    if (isParent && recurrenceChanged) {
+      generatedRef.current.clear();
+    }
+
     setSelectedJob(updated);
     setEditing(false);
     setJobUpdated(true);
@@ -991,6 +1037,27 @@ export default function SchedulePage() {
               type="number"
               placeholder="0"
             />
+
+            <FormInput
+              label={t("schedule.repeatEvery")}
+              value={editForm.recurrenceRule}
+              onChange={(v) => setEditForm((prev) => ({ ...prev, recurrenceRule: v as typeof prev.recurrenceRule }))}
+              options={[
+                { value: "", label: t("schedule.none") },
+                { value: "weekly", label: t("schedule.weekly") },
+                { value: "biweekly", label: t("schedule.biweekly") },
+                { value: "monthly", label: t("schedule.monthly") },
+              ]}
+            />
+
+            {editForm.recurrenceRule && (
+              <FormInput
+                label={t("schedule.endDate")}
+                value={editForm.recurrenceEndDate}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, recurrenceEndDate: v }))}
+                type="date"
+              />
+            )}
 
             <ButtonPrimary
               onClick={handleUpdateJob}
