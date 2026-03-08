@@ -39,13 +39,14 @@ export function Hero() {
       </p>
 
       {/* CTAs */}
-      <div className="animate-fade-up-3 mb-12 flex justify-center gap-3">
+      <div className="animate-fade-up-3 mb-12 flex flex-col items-center gap-2.5">
         <Link
           href="/signup"
           className="inline-flex items-center gap-2 rounded-[13px] bg-gradient-to-br from-blue-600 to-blue-700 px-7 py-3.5 text-[15px] font-semibold text-white shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
         >
-          {t("hero.cta")} <ArrowRightIcon size={16} />
+          {t("nav.startTrial")} <ArrowRightIcon size={16} />
         </Link>
+        <span className="font-body text-xs text-gray-400">{t("hero.noCreditCard")}</span>
       </div>
 
       {/* Business type pills */}

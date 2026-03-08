@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   CalendarIcon,
   ClockIcon,
@@ -7,6 +8,7 @@ import {
   HomeIcon,
   DollarIcon,
   MessageIcon,
+  ArrowRightIcon,
 } from "@/components/icons";
 import { useLanguage } from "@/lib/language-context";
 import type { TranslationKey } from "@/lib/i18n";

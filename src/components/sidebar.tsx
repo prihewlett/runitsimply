@@ -212,6 +212,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="flex justify-center">
           <LanguageToggle compact />
         </div>
+        {user?.email && process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map(e => e.trim()).filter(Boolean).includes(user.email) && (
+          <Link
+            href="/admin"
+            className="flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-purple-50 to-blue-50 px-3 py-2 text-xs font-semibold text-purple-600 transition-colors hover:from-purple-100 hover:to-blue-100"
+          >
+            <ArrowRightIcon size={14} />
+            Admin Panel
+          </Link>
+        )}
         <Link
           href="/"
           className="flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-blue-50 to-purple-50 px-3 py-2 text-xs font-semibold text-blue-600 transition-colors hover:from-blue-100 hover:to-purple-100"

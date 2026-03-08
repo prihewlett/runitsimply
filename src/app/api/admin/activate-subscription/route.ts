@@ -1,20 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import { verifyAdmin } from "@/lib/admin-auth";
 import { createModuleLogger } from "@/lib/logger";
 
 const log = createModuleLogger("admin-activate");
 
 export async function POST(request: NextRequest) {
   try {
+    // Auth: accept either Bearer token or admin session
     const adminSecret = process.env.ADMIN_SECRET_KEY;
-    if (!adminSecret) {
-      return NextResponse.json({ error: "Not configured" }, { status: 503 });
-    }
-
-    // Verify admin secret from Authorization header
     const authHeader = request.headers.get("authorization");
-    if (!authHeader || authHeader !== `Bearer ${adminSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const hasValidToken = adminSecret && authHeader === `Bearer ${adminSecret}`;
+
+    if (!hasValidToken) {
+      const { authorized } = await verifyAdmin();
+      if (!authorized) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     const body = await request.json();
@@ -41,10 +43,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, status: "cancelled" });
     }
 
-    // Default: activate
+    // Default: activate (clear trial date since they're now a paid subscriber)
     const { error } = await supabase
       .from("businesses")
-      .update({ subscription_status: "active" })
+      .update({ subscription_status: "active", trial_ends_at: null })
       .eq("id", businessId);
 
     if (error) {

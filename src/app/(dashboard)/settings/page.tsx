@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
   const [upgradeToast, setUpgradeToast] = useState(false);
+  const [upgradeError, setUpgradeError] = useState("");
 
   // Show success toast if redirected from Stripe checkout
   useEffect(() => {
@@ -29,17 +30,22 @@ export default function SettingsPage() {
 
   const handleUpgrade = async () => {
     setUpgrading(true);
+    setUpgradeError("");
     try {
       const res = await fetch("/api/stripe/create-checkout", { method: "POST" });
       const data = await res.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || t("settings.stripeNotConfigured"));
+        console.error("Stripe checkout error:", data.error);
+        setUpgradeError(data.error || t("settings.stripeNotConfigured"));
+        setTimeout(() => setUpgradeError(""), 8000);
         setUpgrading(false);
       }
-    } catch {
-      alert(t("settings.stripeNotConfigured"));
+    } catch (err) {
+      console.error("Stripe checkout fetch failed:", err);
+      setUpgradeError(t("settings.stripeNotConfigured"));
+      setTimeout(() => setUpgradeError(""), 8000);
       setUpgrading(false);
     }
   };
@@ -401,6 +407,13 @@ export default function SettingsPage() {
       {upgradeToast && (
         <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {t("settings.upgradeSuccess")}
+        </div>
+      )}
+
+      {/* Upgrade error toast */}
+      {upgradeError && (
+        <div role="alert" aria-live="assertive" className="fixed bottom-6 right-6 z-50 max-w-sm rounded-[12px] bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {upgradeError}
         </div>
       )}
     </div>

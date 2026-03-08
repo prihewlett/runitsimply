@@ -25,13 +25,7 @@ export function Navbar() {
         >
           {t("nav.features")}
         </a>
-        <a
-          href="#industries"
-          className="hidden font-body text-sm font-medium text-gray-500 hover:text-gray-900 sm:block"
-        >
-          {t("nav.industries")}
-        </a>
-        <a
+<a
           href="#pricing"
           className="hidden font-body text-sm font-medium text-gray-500 hover:text-gray-900 sm:block"
         >
@@ -39,10 +33,10 @@ export function Navbar() {
         </a>
         <LanguageToggle />
         <Link
-          href="/signup"
+          href="/login"
           className="inline-flex items-center gap-2 rounded-[11px] bg-gradient-to-br from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(37,99,235,0.25)]"
         >
-          {t("nav.openDashboard")} <ArrowRightIcon size={16} />
+          {t("nav.signIn")} <ArrowRightIcon size={16} />
         </Link>
       </div>
     </nav>

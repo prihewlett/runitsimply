@@ -9,9 +9,12 @@ const en = {
   "nav.features": "Features",
   "nav.industries": "Industries",
   "nav.pricing": "Pricing",
+  "nav.startTrial": "Start Free Trial",
+  "nav.signIn": "Sign In",
   "nav.openDashboard": "Open Dashboard",
 
   // ── Hero ──
+  "hero.noCreditCard": "No credit card required",
   "hero.badge": "NEW",
   "hero.badgeText": "Now for all home service businesses",
   "hero.headline1": "Run your service",
@@ -22,8 +25,8 @@ const en = {
   "hero.ctaSecondary": "Watch Demo",
 
   // ── Features ──
-  "features.title1": "Everything you need.",
-  "features.title2": "Nothing you don\u2019t.",
+  "features.title1": "Simple to use. No technical skills needed.",
+  "features.title2": "Set up in minutes.",
   "features.smartScheduling": "Smart Scheduling",
   "features.smartSchedulingDesc":
     "Weekly calendar. Assign jobs, recurring schedules, avoid double-bookings.",
@@ -65,7 +68,7 @@ const en = {
 
   // ── Pricing ──
   "pricing.title": "Simple pricing",
-  "pricing.subtitle": "Try free for 14 days. No credit card required.",
+  "pricing.subtitle": "One plan. All features. Cancel anytime.",
   "pricing.starter": "Starter",
   "pricing.free": "Free",
   "pricing.freeTrial": "Free Trial",
@@ -79,10 +82,14 @@ const en = {
   "pricing.startFreeTrial": "Start Free Trial",
   "pricing.startTrial": "Start Free Trial",
   "pricing.signUp": "Sign Up Now!",
+  "pricing.planName": "Everything you need",
+  "pricing.trialNote": "Free for 14 days · No credit card required",
+  "pricing.fullProAccess": "Full Pro access for 14 days",
+  "pricing.noCardRequired": "No credit card required",
   "pricing.scheduling": "Scheduling",
-  "pricing.team3": "Team (3 members)",
+  "pricing.team3": "Team management",
   "pricing.clientDb": "Client database",
-  "pricing.basicInvoicing": "Basic invoicing",
+  "pricing.basicInvoicing": "Invoicing",
   "pricing.messaging": "Messaging",
   "pricing.everythingStarter": "Everything in Starter",
   "pricing.unlimitedClients": "Unlimited clients",
@@ -92,7 +99,7 @@ const en = {
   "pricing.gpsVerification": "GPS verification",
 
   // ── CTA ──
-  "cta.title": "Ready to ditch the spreadsheets?",
+  "cta.title": "Stop losing money. Know your profits.",
   "cta.subtitle": "Set up in 5 minutes. No credit card required.",
   "cta.button": "Get Started Free",
 
@@ -365,7 +372,7 @@ const en = {
 
   // ── Settings: Referral Program ──
   "settings.referralProgram": "Referral Program",
-  "settings.referralDesc": "Share your code. You both get $25 credit \u2014 you earn $25 when they sign up, and they get $25 off. Each person can only be referred once.",
+  "settings.referralDesc": "Share your code. You both get $20 credit \u2014 you earn $20 when they make their first payment, and they get $20 off their first month. Each person can only be referred once.",
   "settings.yourReferralCode": "YOUR REFERRAL CODE",
   "settings.copyCode": "Copy",
   "settings.codeCopied": "Copied!",
@@ -378,8 +385,10 @@ const en = {
   "pricing.haveReferralCode": "Have a referral code?",
   "pricing.enterCode": "Enter referral code",
   "pricing.applyCode": "Apply",
-  "pricing.codeApplied": "Code applied! You\u2019ll get $25 credit on your account.",
+  "pricing.codeApplied": "Code applied! You\u2019ll get $20 off your first month.",
   "pricing.codeAlreadyUsed": "You\u2019ve already applied a referral code.",
+  "pricing.invalidCode": "Invalid referral code",
+  "pricing.validating": "Checking...",
 
   // ── Schedule: Delete Job ──
   "schedule.deleteJob": "Delete Job",
@@ -642,21 +651,24 @@ const es: Record<TranslationKey, string> = {
   "nav.features": "Funciones",
   "nav.industries": "Industrias",
   "nav.pricing": "Precios",
+  "nav.startTrial": "Empieza Gratis",
+  "nav.signIn": "Iniciar Sesi\u00F3n",
   "nav.openDashboard": "Abrir Panel",
 
   // ── Hero ──
+  "hero.noCreditCard": "No se requiere tarjeta de cr\u00E9dito",
   "hero.badge": "NUEVO",
   "hero.badgeText": "Ahora para todos los negocios de servicio a domicilio",
   "hero.headline1": "Administra tu negocio",
-  "hero.headline2": "de servicio f\u00E1cilmente",
+  "hero.headline2": "sin complicaciones.",
   "hero.subtitle":
-    "Programaci\u00F3n, gesti\u00F3n de equipos, seguimiento de clientes y pagos \u2014 todo en un solo lugar. Hecho para equipos peque\u00F1os que hacen un gran trabajo.",
+    "Agenda trabajos, organiza tu equipo y recibe pagos\u2014todo en un solo lugar. Dise\u00F1ado para peque\u00F1os negocios que quieren crecer.",
   "hero.cta": "Probar el Panel",
   "hero.ctaSecondary": "Ver Demo",
 
   // ── Features ──
-  "features.title1": "Todo lo que necesitas.",
-  "features.title2": "Nada que no.",
+  "features.title1": "F\u00E1cil de usar. Sin experiencia t\u00E9cnica.",
+  "features.title2": "Empieza en minutos.",
   "features.smartScheduling": "Programaci\u00F3n Inteligente",
   "features.smartSchedulingDesc":
     "Calendario semanal. Asigna trabajos, horarios recurrentes, evita reservas dobles.",
@@ -698,7 +710,7 @@ const es: Record<TranslationKey, string> = {
 
   // ── Pricing ──
   "pricing.title": "Precios simples",
-  "pricing.subtitle": "Prueba gratis por 14 días. Sin tarjeta de crédito.",
+  "pricing.subtitle": "Un solo plan. Todas las funciones. Cancela cuando quieras.",
   "pricing.starter": "Básico",
   "pricing.free": "Gratis",
   "pricing.freeTrial": "Prueba Gratis",
@@ -712,20 +724,24 @@ const es: Record<TranslationKey, string> = {
   "pricing.startFreeTrial": "Iniciar Prueba Gratis",
   "pricing.startTrial": "Prueba Gratuita",
   "pricing.signUp": "Regístrate Ahora",
+  "pricing.planName": "Todo lo que necesitas",
+  "pricing.trialNote": "Gratis por 14 días · Sin tarjeta de crédito",
+  "pricing.fullProAccess": "Acceso Pro completo por 14 días",
+  "pricing.noCardRequired": "Sin tarjeta de crédito",
   "pricing.scheduling": "Programación",
-  "pricing.team3": "Equipo (3 miembros)",
+  "pricing.team3": "Gestión de equipo",
   "pricing.clientDb": "Base de clientes",
-  "pricing.basicInvoicing": "Facturaci\u00F3n b\u00E1sica",
-  "pricing.messaging": "Mensajer\u00EDa",
-  "pricing.everythingStarter": "Todo del B\u00E1sico",
+  "pricing.basicInvoicing": "Facturación",
+  "pricing.messaging": "Mensajería",
+  "pricing.everythingStarter": "Todo del Básico",
   "pricing.unlimitedClients": "Clientes ilimitados",
   "pricing.venmoZelle": "Enlaces Venmo y Zelle",
-  "pricing.stripeAuto": "Cobro autom\u00E1tico Stripe",
+  "pricing.stripeAuto": "Cobro automático Stripe",
   "pricing.smsReminders": "Recordatorios SMS",
-  "pricing.gpsVerification": "Verificaci\u00F3n GPS",
+  "pricing.gpsVerification": "Verificación GPS",
 
   // ── CTA ──
-  "cta.title": "\u00BFListo para dejar las hojas de c\u00E1lculo?",
+  "cta.title": "Deja de perder dinero. Conoce tus ganancias.",
   "cta.subtitle":
     "Configura en 5 minutos. No se requiere tarjeta de cr\u00E9dito.",
   "cta.button": "Comenzar Gratis",
@@ -999,7 +1015,7 @@ const es: Record<TranslationKey, string> = {
 
   // ── Settings: Referral Program ──
   "settings.referralProgram": "Programa de Referidos",
-  "settings.referralDesc": "Comparte tu código. Ambos reciben $25 de crédito \u2014 tú ganas $25 cuando se registren, y ellos obtienen $25 de descuento. Cada persona solo puede ser referida una vez.",
+  "settings.referralDesc": "Comparte tu código. Ambos reciben $20 de crédito \u2014 tú ganas $20 cuando hagan su primer pago, y ellos obtienen $20 de descuento en su primer mes. Cada persona solo puede ser referida una vez.",
   "settings.yourReferralCode": "TU CÓDIGO DE REFERIDO",
   "settings.copyCode": "Copiar",
   "settings.codeCopied": "¡Copiado!",
@@ -1012,8 +1028,10 @@ const es: Record<TranslationKey, string> = {
   "pricing.haveReferralCode": "¿Tienes un código de referido?",
   "pricing.enterCode": "Ingresa código de referido",
   "pricing.applyCode": "Aplicar",
-  "pricing.codeApplied": "¡Código aplicado! Recibirás $25 de crédito en tu cuenta.",
+  "pricing.codeApplied": "¡Código aplicado! Recibirás $20 de descuento en tu primer mes.",
   "pricing.codeAlreadyUsed": "Ya aplicaste un código de referido.",
+  "pricing.invalidCode": "Código de referido inválido",
+  "pricing.validating": "Verificando...",
 
   // ── Schedule: Delete Job ──
   "schedule.deleteJob": "Eliminar Trabajo",

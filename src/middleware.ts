@@ -66,6 +66,25 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Admin route protection: require authenticated admin email
+  if (pathname.startsWith("/admin")) {
+    if (!user) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/login";
+      return NextResponse.redirect(loginUrl);
+    }
+    const adminEmails = (process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+    if (!adminEmails.includes(user.email?.toLowerCase() ?? "")) {
+      const dashUrl = request.nextUrl.clone();
+      dashUrl.pathname = "/dashboard";
+      return NextResponse.redirect(dashUrl);
+    }
+    return supabaseResponse;
+  }
+
   // If user is NOT authenticated and trying to access a protected route
   if (!user && !PUBLIC_ROUTES.includes(pathname)) {
     log.info("middleware", "unauthenticated user redirected to login", {

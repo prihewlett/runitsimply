@@ -22,9 +22,11 @@ export async function POST(request: NextRequest) {
     const { Resend } = await import("resend");
     const resend = new Resend(apiKey);
 
+    const toEmail = process.env.CONTACT_FORM_EMAIL || "prihewlett@gmail.com";
+
     const { error } = await resend.emails.send({
       from: "RunItSimply Contact Form <no-reply@runitsimply.com>",
-      to: ["prihewlett@gmail.com"],
+      to: [toEmail],
       replyTo: email,
       subject: `New contact form message from ${name}`,
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,

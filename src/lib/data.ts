@@ -85,9 +85,6 @@ export const BUSINESS_TYPES: BusinessType[] = [
   { id: "cleaning", label: "Home Cleaning", emoji: "\u{1F9F9}", color: "#3B82F6" },
   { id: "landscaping", label: "Landscaping", emoji: "\u{1F33F}", color: "#16A34A" },
   { id: "pool", label: "Pool Service", emoji: "\u{1F3CA}", color: "#0EA5E9" },
-  { id: "handyman", label: "Handyman", emoji: "\u{1F527}", color: "#F59E0B" },
-  { id: "pressure", label: "Pressure Washing", emoji: "\u{1F4A6}", color: "#6366F1" },
-  { id: "pest", label: "Pest Control", emoji: "\u{1F6E1}\uFE0F", color: "#EF4444" },
   { id: "moving", label: "Moving & Hauling", emoji: "\u{1F4E6}", color: "#8B5CF6" },
   { id: "other", label: "Other Services", emoji: "\u26A1", color: "#EC4899" },
 ];

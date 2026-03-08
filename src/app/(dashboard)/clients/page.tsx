@@ -27,6 +27,7 @@ export default function ClientsPage() {
   const [clientDeleted, setClientDeleted] = useState(false);
   const [clientUpdated, setClientUpdated] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [clientEditFormError, setClientEditFormError] = useState(false);
   const DEFAULT_CLIENT_FORM = {
     name: "",
     contact: "",
@@ -117,11 +118,16 @@ export default function ClientsPage() {
       serviceRateType: selected.serviceRateType ?? "flat",
       notes: selected.notes,
     });
+    setClientEditFormError(false);
     setEditing(true);
   };
 
   const handleUpdateClient = () => {
-    if (!selectedClient || !clientEditForm.name.trim() || !clientEditForm.contact.trim()) return;
+    if (!selectedClient || !clientEditForm.name.trim() || !clientEditForm.contact.trim()) {
+      setClientEditFormError(true);
+      return;
+    }
+    setClientEditFormError(false);
     setClients((prev) =>
       prev.map((c) =>
         c.id === selectedClient
@@ -522,6 +528,11 @@ export default function ClientsPage() {
                     />
                   </div>
                 </div>
+                {clientEditFormError && (
+                  <div className="mb-2 rounded-[10px] bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+                    {t("common.requiredFields")}
+                  </div>
+                )}
                 <div className="mt-2 flex gap-2">
                   <ButtonPrimary onClick={handleUpdateClient}>
                     {t("clients.saveClient")}

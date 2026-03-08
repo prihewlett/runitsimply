@@ -148,7 +148,7 @@ export default function ExpensesPage() {
             : exp
         )
       );
-      showToast(t("expenses.expenseAdded"));
+      showToast(t("expenses.expenseUpdated"));
     } else {
       // Create
       const newExpense: Expense = {
