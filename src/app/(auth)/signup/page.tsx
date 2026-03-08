@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/language-context";
@@ -15,8 +15,18 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
   const { t } = useLanguage();
+
+  // Check for applied referral code from localStorage
+  useEffect(() => {
+    const used = localStorage.getItem("runitsimply-referral-used");
+    if (used === "true") {
+      const code = localStorage.getItem("runitsimply-referral-code");
+      if (code) setReferralCode(code);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +38,7 @@ export default function SignupPage() {
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, businessName, fullName }),
+        body: JSON.stringify({ email, password, businessName, fullName, referralCode }),
       });
 
       let data;
@@ -48,6 +58,10 @@ export default function SignupPage() {
         return;
       }
 
+      // Clean up referral localStorage
+      localStorage.removeItem("runitsimply-referral-used");
+      localStorage.removeItem("runitsimply-referral-code");
+
       // Account created! Redirect to login page with success message
       router.push("/login?registered=true");
     } catch (err) {
@@ -66,6 +80,13 @@ export default function SignupPage() {
       <p className="mb-6 font-body text-sm text-gray-400">
         {t("auth.signupSubtitle")}
       </p>
+
+      {referralCode && (
+        <div className="mb-4 rounded-[10px] bg-purple-50 border border-purple-200 px-4 py-2.5 text-sm">
+          <span className="font-semibold text-purple-700">Referral: {referralCode}</span>
+          <span className="text-purple-600"> — $20 off your first month!</span>
+        </div>
+      )}
 
       {error && (
         <div role="alert" className="mb-4 rounded-[10px] bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600">
@@ -130,6 +151,7 @@ export default function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
+            autoComplete="new-password"
             className="w-full rounded-[10px] border border-[#F0F2F5] px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-400"
             placeholder="••••••••"
           />

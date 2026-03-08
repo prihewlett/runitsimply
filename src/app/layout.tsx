@@ -22,6 +22,18 @@ export const metadata: Metadata = {
   title: "RunItSimply — Home Service Business Manager",
   description:
     "Scheduling, team management, client tracking, and payments for home service businesses.",
+  metadataBase: new URL("https://runitsimply.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "RunItSimply — Home Service Business Manager",
+    description:
+      "Scheduling, team management, client tracking, and payments for home service businesses.",
+    url: "https://runitsimply.com",
+    siteName: "RunItSimply",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

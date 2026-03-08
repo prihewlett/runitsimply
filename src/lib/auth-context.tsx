@@ -78,7 +78,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const { data: { user: currentUser }, error: getUserError } = await supabase.auth.getUser();
           if (getUserError) {
-            log.error("getSession", "getUser() failed", { error: getUserError });
+            // "Auth session missing!" is expected when no user is logged in — not a real error
+            const isNoSession =
+              getUserError.message?.includes("Auth session missing") ||
+              getUserError.name === "AuthSessionMissingError";
+            if (isNoSession) {
+              log.debug("getSession", "no active session (user not logged in)");
+            } else {
+              log.error("getSession", "getUser() failed", { error: getUserError });
+            }
           }
           log.debug("getSession", "getUser() result", { hasUser: !!currentUser, userId: currentUser?.id });
           setUser(currentUser);
@@ -225,17 +233,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     if (useSupabase.current) {
-      const supabase = createClient();
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (signOutError) {
-        log.error("signOut", "signOut() returned error", { error: signOutError });
-      } else {
-        log.info("signOut", "user signed out successfully");
-      }
-      router.push("/login");
-      router.refresh();
+      // Server-side signout clears httpOnly cookies that browser JS can't touch
+      await fetch("/api/auth/signout", { method: "POST" });
+      window.location.href = "/login";
     }
-  }, [router]);
+  }, []);
 
   const isOwner = role === "owner";
 
