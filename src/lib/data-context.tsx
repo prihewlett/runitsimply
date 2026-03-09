@@ -194,7 +194,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       // Wait for profile/businessId to be available before fetching
       if (!businessId) {
         log.warn("fetchAll", "no businessId available - skipping data fetch (dashboard will be empty)", {
-          hasProfile: !!profile,
+          hasProfile: !!businessId,
         });
         setLoading(false);
         return;

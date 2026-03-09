@@ -8,7 +8,7 @@ import {
   useCallback,
   useRef,
 } from "react";
-import { useRouter } from "next/navigation";
+
 import { createClient } from "./supabase";
 import { createModuleLogger } from "./logger";
 import type { User } from "@supabase/supabase-js";
@@ -65,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [authReady, setAuthReady] = useState(false);
-  const router = useRouter();
   const useSupabase = useRef(isSupabaseConfigured());
 
   // ─── Supabase Auth ───

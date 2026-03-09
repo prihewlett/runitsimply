@@ -59,10 +59,6 @@ export async function POST(request: NextRequest) {
     const platformZelle = process.env.PLATFORM_ZELLE_EMAIL || "";
 
     // Build payment request message
-    const venmoLink = platformVenmo
-      ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(platformVenmo)}&amount=19.99&note=${encodeURIComponent("RunItSimply Pro Subscription")}`
-      : "";
-
     let messageBody: string;
 
     if (customMessage) {
