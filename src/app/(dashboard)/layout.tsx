@@ -41,8 +41,11 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-blue-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+        Skip to main content
+      </a>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="flex-1 p-4 md:ml-[220px] md:p-8">
+      <main id="main-content" className="flex-1 p-4 md:ml-[220px] md:p-8">
         {/* Mobile header with hamburger */}
         <div className="mb-2 flex items-center justify-between md:justify-end">
           <button
