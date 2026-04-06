@@ -38,7 +38,7 @@ export async function POST() {
     // Get business info
     const { data: business } = await supabase
       .from("businesses")
-      .select("id, name, email, stripe_customer_id, referred_by")
+      .select("id, name, email, stripe_customer_id, referred_by, referral_credit")
       .eq("id", profile.business_id)
       .single();
 
@@ -90,6 +90,24 @@ export async function POST() {
       client_reference_id: business.id,
       metadata: { business_id: business.id },
     };
+
+    // Apply any accumulated referral credit to Stripe customer balance
+    if (business.referral_credit && business.referral_credit > 0) {
+      const creditCents = Math.round(business.referral_credit * 100);
+      await stripe.customers.createBalanceTransaction(customerId, {
+        amount: -creditCents, // negative = credit in Stripe
+        currency: "usd",
+        description: `Referral credit ($${business.referral_credit.toFixed(2)})`,
+      });
+      await supabase
+        .from("businesses")
+        .update({ referral_credit: 0 })
+        .eq("id", business.id);
+      log.info("POST", "referral credit applied to Stripe balance", {
+        businessId: business.id,
+        creditApplied: business.referral_credit,
+      });
+    }
 
     // If this user was referred, apply $20 off first month coupon
     if (business.referred_by) {
