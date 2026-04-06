@@ -228,6 +228,7 @@ const en = {
   "messages.selectConvo": "Select a conversation to start messaging",
   "messages.newMessage": "New Message",
   "messages.existingConvo": "Open existing conversation",
+  "messages.noContacts": "Add clients or team members first to start a conversation.",
 
   // ── Payments page ──
   "payments.title": "Payments & Invoicing",
@@ -872,6 +873,7 @@ const es: Record<TranslationKey, string> = {
   "messages.selectConvo": "Selecciona una conversaci\u00F3n para comenzar",
   "messages.newMessage": "Nuevo Mensaje",
   "messages.existingConvo": "Abrir conversaci\u00F3n existente",
+  "messages.noContacts": "Agrega clientes o miembros del equipo primero para iniciar una conversaci\u00F3n.",
 
   // ── Payments page ──
   "payments.title": "Pagos y Facturaci\u00F3n",

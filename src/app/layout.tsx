@@ -19,7 +19,10 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "RunItSimply — Home Service Business Manager",
+  title: {
+    default: "RunItSimply",
+    template: "%s | RunItSimply",
+  },
   description:
     "Scheduling, team management, client tracking, and payments for home service businesses.",
   metadataBase: new URL("https://runitsimply.com"),
@@ -27,7 +30,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "RunItSimply — Home Service Business Manager",
+    title: "RunItSimply",
     description:
       "Scheduling, team management, client tracking, and payments for home service businesses.",
     url: "https://runitsimply.com",

@@ -18,7 +18,7 @@ const log = createModuleLogger("settings");
 
 interface SettingsContextValue {
   settings: BusinessSettings;
-  updateSettings: (patch: Partial<BusinessSettings>) => void;
+  updateSettings: (patch: Partial<BusinessSettings>, onError?: (msg: string) => void) => void;
   isReadOnly: boolean;
   daysLeftInTrial: number;
   subscriptionStatus: SubscriptionStatus;
@@ -166,7 +166,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [subscriptionStatus, daysLeftInTrial]);
 
-  const updateSettings = useCallback((patch: Partial<BusinessSettings>) => {
+  const updateSettings = useCallback((patch: Partial<BusinessSettings>, onError?: (msg: string) => void) => {
     setSettings((prev) => {
       const next = { ...prev, ...patch };
 
@@ -194,6 +194,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
               log.error("updateSettings", "business settings update failed", {
                 businessId: businessIdRef.current, error,
               });
+              onError?.("Settings could not be saved. Please try again.");
             } else {
               log.debug("updateSettings", "settings persisted to database", {
                 businessId: businessIdRef.current,

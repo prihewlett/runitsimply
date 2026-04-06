@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { LanguageToggle } from "@/components/ui/language-toggle";
 
 export default function AuthLayout({
@@ -33,6 +34,13 @@ export default function AuthLayout({
       <div className="mt-6">
         <LanguageToggle compact />
       </div>
+
+      <p className="mt-4 text-center font-body text-[11px] text-gray-400">
+        © {new Date().getFullYear()} RunItSimply ·{" "}
+        <Link href="/terms" className="hover:underline">Terms</Link>
+        {" "}·{" "}
+        <Link href="/privacy" className="hover:underline">Privacy</Link>
+      </p>
     </div>
   );
 }

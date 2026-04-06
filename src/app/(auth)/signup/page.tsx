@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -31,6 +32,16 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -150,16 +161,29 @@ export default function SignupPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6}
+            minLength={8}
             autoComplete="new-password"
             className="w-full rounded-[10px] border border-[#F0F2F5] px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-400"
             placeholder="••••••••"
           />
-          {password.length > 0 && password.length < 6 && (
-            <p className="mt-1 font-body text-[10px] text-amber-600">
-              {t("auth.passwordMinLength")}
-            </p>
-          )}
+          <p className="mt-1 font-body text-[10px] text-gray-400">Minimum 8 characters</p>
+        </div>
+
+        <div>
+          <label htmlFor="signup-confirm-password" className="mb-1 block font-body text-[11px] font-semibold text-gray-500">
+            Confirm Password
+          </label>
+          <input
+            id="signup-confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className="w-full rounded-[10px] border border-[#F0F2F5] px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-400"
+            placeholder="••••••••"
+          />
         </div>
 
         <button
@@ -176,6 +200,12 @@ export default function SignupPage() {
         <Link href="/login" className="font-semibold text-blue-600 hover:underline">
           {t("auth.signIn")}
         </Link>
+      </p>
+      <p className="mt-3 text-center font-body text-[11px] text-gray-400">
+        By signing up you agree to our{" "}
+        <Link href="/terms" className="underline hover:text-blue-600">Terms</Link>
+        {" "}and{" "}
+        <Link href="/privacy" className="underline hover:text-blue-600">Privacy Policy</Link>
       </p>
     </div>
   );

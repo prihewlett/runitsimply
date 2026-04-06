@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [upgrading, setUpgrading] = useState(false);
   const [upgradeToast, setUpgradeToast] = useState(false);
   const [upgradeError, setUpgradeError] = useState("");
@@ -51,7 +52,10 @@ export default function SettingsPage() {
   };
 
   const updateSettings = (partial: Parameters<typeof rawUpdateSettings>[0]) => {
-    rawUpdateSettings(partial);
+    rawUpdateSettings(partial, (msg) => {
+      setSaveError(msg);
+      setTimeout(() => setSaveError(""), 4000);
+    });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -407,6 +411,13 @@ export default function SettingsPage() {
       {upgradeToast && (
         <div role="status" aria-live="polite" className="fixed bottom-6 right-6 z-50 rounded-[12px] bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {t("settings.upgradeSuccess")}
+        </div>
+      )}
+
+      {/* Save error toast */}
+      {saveError && (
+        <div role="alert" aria-live="assertive" className="fixed bottom-6 right-6 z-50 max-w-sm rounded-[12px] bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {saveError}
         </div>
       )}
 

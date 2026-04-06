@@ -288,13 +288,13 @@ export default function ClientsPage() {
       >
         <div className="grid grid-cols-2 gap-x-4">
           <FormInput
-            label={t("clients.property")}
+            label={`${t("clients.property")} *`}
             value={clientForm.name}
             onChange={(v) => setClientForm((prev) => ({ ...prev, name: v }))}
             placeholder={t("clients.placeholderProperty")}
           />
           <FormInput
-            label={t("clients.contactName")}
+            label={`${t("clients.contactName")} *`}
             value={clientForm.contact}
             onChange={(v) => setClientForm((prev) => ({ ...prev, contact: v }))}
             placeholder={t("clients.placeholderContact")}

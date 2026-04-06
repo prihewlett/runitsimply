@@ -77,6 +77,7 @@ export function Footer() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder={t("footer.namePlaceholder")}
+                      required
                       className="w-full rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-2 font-body text-sm outline-none transition-colors focus:border-blue-600"
                     />
                   </div>
@@ -91,6 +92,7 @@ export function Footer() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t("footer.emailPlaceholder")}
+                      required
                       className="w-full rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-2 font-body text-sm outline-none transition-colors focus:border-blue-600"
                     />
                   </div>
@@ -105,6 +107,7 @@ export function Footer() {
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder={t("footer.messagePlaceholder")}
                       rows={4}
+                      required
                       className="w-full resize-none rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-2 font-body text-sm outline-none transition-colors focus:border-blue-600"
                     />
                   </div>

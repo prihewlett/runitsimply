@@ -216,7 +216,7 @@ export default function SchedulePage() {
   };
 
   const handleSaveJob = () => {
-    if (!form.clientId || !form.date || !form.time || !form.duration) {
+    if (!form.clientId || !form.date || !form.time || !form.duration || !form.amount || Number(form.amount) <= 0) {
       setFormError(true);
       return;
     }

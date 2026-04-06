@@ -5,7 +5,7 @@ import { createModuleLogger } from "@/lib/logger";
 const log = createModuleLogger("middleware");
 
 // Routes that don't require authentication
-const PUBLIC_ROUTES = ["/", "/login", "/signup", "/invite", "/forgot-password", "/reset-password"];
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/invite", "/forgot-password", "/reset-password", "/terms", "/privacy"];
 
 // Check if Supabase is configured (not placeholder values)
 function isSupabaseConfigured(): boolean {

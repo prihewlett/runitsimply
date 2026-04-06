@@ -364,6 +364,12 @@ export default function MessagesPage() {
               </div>
             </div>
           )}
+
+          {clientContacts.length === 0 && teamContacts.length === 0 && (
+            <p className="py-6 text-center font-body text-sm text-gray-400">
+              {t("messages.noContacts")}
+            </p>
+          )}
         </div>
       </Modal>
     </div>
