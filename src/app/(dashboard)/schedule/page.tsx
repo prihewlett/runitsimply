@@ -502,8 +502,8 @@ export default function SchedulePage() {
 
       {/* Navigation bar */}
       <div className="mb-4 flex items-center gap-3">
-        {/* View toggle */}
-        <div className="flex overflow-hidden rounded-lg border border-[#F0F2F5]">
+        {/* View toggle — hidden on mobile, always shows list */}
+        <div className="hidden md:flex overflow-hidden rounded-lg border border-[#F0F2F5]">
           <button
             onClick={() => setView("week")}
             aria-pressed={view === "week"}
@@ -560,9 +560,119 @@ export default function SchedulePage() {
         )}
       </div>
 
-      {/* ── Week View ── */}
+      {/* ── Mobile List View (always week, stacked cards) ── */}
+      <div className="md:hidden space-y-3">
+        {weekDates.map((date) => {
+          const dateStr = toDateString(date);
+          const dayJobs = visibleJobs.filter((j) => j.date === dateStr);
+          const today = isToday(date);
+          return (
+            <div
+              key={dateStr}
+              className={`rounded-[14px] border bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${
+                today ? "border-blue-300 ring-1 ring-blue-100" : "border-[#F0F2F5]"
+              }`}
+            >
+              {/* Day header */}
+              <div className="mb-3 flex items-center gap-3">
+                <div
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                    today ? "bg-blue-600 text-white" : "bg-[#F0F2F5] text-[#1A1D26]"
+                  }`}
+                >
+                  {date.getDate()}
+                </div>
+                <div>
+                  <div className="text-sm font-bold">{formatDayName(date)}</div>
+                  {today && (
+                    <div className="text-[10px] font-semibold text-blue-600">
+                      {t("schedule.today")}
+                    </div>
+                  )}
+                </div>
+                {dayJobs.length > 0 && (
+                  <span className="ml-auto rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-600">
+                    {dayJobs.length} job{dayJobs.length !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {/* Jobs */}
+              {dayJobs.length === 0 ? (
+                <p className="py-1 text-center font-body text-xs text-gray-300">
+                  {t("schedule.noJobs")}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {dayJobs.map((job) => {
+                    const client = CLIENTS.find((c) => c.id === job.clientId);
+                    const bt = BUSINESS_TYPES.find((b) => b.id === client?.serviceType);
+                    const assignees = EMPLOYEES.filter((e) => job.employeeIds.includes(e.id));
+                    return (
+                      <div
+                        key={job.id}
+                        onClick={() => handleJobClick(job)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleJobClick(job); } }}
+                        className="flex cursor-pointer items-center gap-3 rounded-[10px] p-3 transition-opacity active:opacity-70"
+                        style={{
+                          background: (bt?.color ?? "#6B7280") + "10",
+                          borderLeft: `3px solid ${bt?.color ?? "#6B7280"}`,
+                        }}
+                      >
+                        <span className="text-2xl">{bt?.emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">{client?.name}</div>
+                          <div className="font-body text-xs text-gray-500">
+                            {job.time} &middot; {job.duration}h
+                          </div>
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            <span
+                              className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{
+                                background: job.status === "completed" ? "#ECFDF5" : "#EFF6FF",
+                                color: job.status === "completed" ? "#059669" : "#2563EB",
+                              }}
+                            >
+                              {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                            </span>
+                            <span
+                              className="inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{
+                                background: job.paymentStatus === "paid" ? "#ECFDF5" : "#FEF3C7",
+                                color: job.paymentStatus === "paid" ? "#059669" : "#92400E",
+                              }}
+                            >
+                              {job.paymentStatus.charAt(0).toUpperCase() + job.paymentStatus.slice(1)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 flex-wrap gap-1">
+                          {assignees.map((e) => (
+                            <div
+                              key={e.id}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                              style={{ background: e.color }}
+                              title={e.name}
+                            >
+                              {e.avatar}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── Week View (desktop only) ── */}
       {view === "week" && (
-        <div className="grid grid-cols-7 gap-2">
+        <div className="hidden md:grid grid-cols-7 gap-2">
           {weekDates.map((date) => {
             const dateStr = toDateString(date);
             const dayJobs = visibleJobs.filter((j) => j.date === dateStr);
@@ -679,9 +789,9 @@ export default function SchedulePage() {
         </div>
       )}
 
-      {/* ── Month View ── */}
+      {/* ── Month View (desktop only) ── */}
       {view === "month" && (
-        <div>
+        <div className="hidden md:block">
           {/* Day-of-week headers */}
           <div className="mb-1 grid grid-cols-7 gap-1">
             {DAYS_SHORT.map((day) => (
