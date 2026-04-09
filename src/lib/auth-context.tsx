@@ -9,6 +9,7 @@ import {
   useRef,
 } from "react";
 
+import { useRouter } from "next/navigation";
 import { createClient } from "./supabase";
 import { createModuleLogger } from "./logger";
 import type { User } from "@supabase/supabase-js";
@@ -66,6 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const useSupabase = useRef(isSupabaseConfigured());
+  const router = useRouter();
 
   // ─── Supabase Auth ───
   useEffect(() => {
@@ -133,6 +135,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
         async (event, session) => {
           setUser(session?.user ?? null);
+
+          // Password recovery — redirect to reset form no matter where user lands
+          if (event === "PASSWORD_RECOVERY") {
+            log.info("onAuthStateChange", "PASSWORD_RECOVERY event — redirecting to reset-password");
+            router.push("/reset-password");
+            return;
+          }
+
           if (event === "SIGNED_OUT") {
             setProfile(null);
             setRoleRaw("owner");
