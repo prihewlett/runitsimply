@@ -15,59 +15,49 @@ function AuthCallbackInner() {
     const supabase = createClient();
     const code = searchParams.get("code");
     const next = searchParams.get("next") ?? "/dashboard";
+    let done = false;
 
-    async function handleCallback() {
-      // If there's a PKCE code, exchange it for a session
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          log.error("handleCallback", "code exchange failed", { error: error.message });
-          router.push("/forgot-password?error=expired");
-          return;
-        }
-        log.info("handleCallback", "code exchange successful", { next });
-      }
-
-      // Check the current session (covers both PKCE and hash-based token flows)
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        // No session yet — listen for Supabase to process hash tokens (implicit flow)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-          subscription.unsubscribe();
-          if (event === "PASSWORD_RECOVERY") {
-            log.info("handleCallback", "PASSWORD_RECOVERY via hash tokens");
-            router.push("/reset-password");
-          } else if (event === "SIGNED_IN") {
-            log.info("handleCallback", "SIGNED_IN via hash tokens", { next });
-            router.push(next);
-          } else {
-            router.push("/login");
-          }
-        });
-
-        // If nothing fires after 3s, redirect to login
-        setTimeout(() => {
-          subscription.unsubscribe();
-          router.push("/login");
-        }, 3000);
-        return;
-      }
-
-      // Session exists — check if this is a password recovery session
-      const isRecovery = next === "/reset-password" ||
-        session.user?.recovery_sent_at != null;
-
-      if (isRecovery || next === "/reset-password") {
-        log.info("handleCallback", "recovery session detected — redirecting to reset-password");
-        router.push("/reset-password");
-      } else {
-        log.info("handleCallback", "session established — redirecting", { next });
-        router.push(next);
-      }
+    function redirect(to: string) {
+      if (done) return;
+      done = true;
+      clearTimeout(fallback);
+      router.push(to);
     }
 
-    handleCallback();
+    // Listen for auth events first — catches hash-based token flows
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      log.info("onAuthStateChange", event);
+      if (event === "PASSWORD_RECOVERY") {
+        subscription.unsubscribe();
+        redirect("/reset-password");
+      } else if (event === "SIGNED_IN") {
+        subscription.unsubscribe();
+        redirect(next);
+      }
+    });
+
+    // Exchange PKCE code if present — triggers SIGNED_IN above
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          log.error("exchangeCode", "failed", { error: error.message });
+          subscription.unsubscribe();
+          redirect("/forgot-password?error=expired");
+        }
+      });
+    }
+
+    // Fallback — if nothing fires in 5s, go to login
+    const fallback = setTimeout(() => {
+      log.warn("fallback", "no auth event fired, redirecting to login");
+      subscription.unsubscribe();
+      redirect("/login");
+    }, 5000);
+
+    return () => {
+      clearTimeout(fallback);
+      subscription.unsubscribe();
+    };
   }, [router, searchParams]);
 
   return (
