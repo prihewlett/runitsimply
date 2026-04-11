@@ -241,11 +241,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    if (useSupabase.current) {
-      // Server-side signout clears httpOnly cookies that browser JS can't touch
-      await fetch("/api/auth/signout", { method: "POST" });
-      window.location.href = "/login";
-    }
+    // Always attempt signout — handles the case where user state is null
+    // but a server-side session still exists (e.g. after password reset flow)
+    await fetch("/api/auth/signout", { method: "POST" });
+    window.location.href = "/login";
   }, []);
 
   const isOwner = role === "owner";
