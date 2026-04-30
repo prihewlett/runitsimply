@@ -30,6 +30,9 @@ export function SendInvoiceModal({
   const [copiedPayment, setCopiedPayment] = useState<"venmo" | "zelle" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  // Per-invoice payment method selection — start with all available methods enabled
+  const [includeVenmo, setIncludeVenmo] = useState(true);
+  const [includeZelle, setIncludeZelle] = useState(true);
 
   if (!job || !client) return null;
 
@@ -44,13 +47,13 @@ export function SendInvoiceModal({
   const totalAmountStr = totalAmount.toFixed(2);
 
   const paymentLines: string[] = [];
-  const venmoDeepLink = settings.venmoHandle
+  const venmoDeepLink = settings.venmoHandle && includeVenmo
     ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${totalAmountStr}&note=${encodeURIComponent(invoiceId)}`
     : "";
-  if (settings.venmoHandle) {
+  if (settings.venmoHandle && includeVenmo) {
     paymentLines.push(`Venmo: @${settings.venmoHandle}`);
   }
-  if (settings.zelleEmail) {
+  if (settings.zelleEmail && includeZelle) {
     paymentLines.push(`Zelle: ${settings.zelleEmail}`);
   }
 
@@ -132,6 +135,8 @@ export function SendInvoiceModal({
     setLinkCopied(false);
     setCopiedPayment(null);
     setSendError("");
+    setIncludeVenmo(true);
+    setIncludeZelle(true);
     onClose();
   };
 
@@ -195,13 +200,55 @@ export function SendInvoiceModal({
         </div>
       </div>
 
+      {/* Payment method selection — choose which to include per invoice */}
+      {(settings.venmoHandle || settings.zelleEmail) && (
+        <div className="mb-4">
+          <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
+            Include payment options in this invoice:
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {settings.venmoHandle && (
+              <button
+                onClick={() => setIncludeVenmo((v) => !v)}
+                className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+                  includeVenmo
+                    ? "border-blue-400 bg-blue-50 text-blue-700"
+                    : "border-[#F0F2F5] bg-white text-gray-400 line-through"
+                }`}
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#3D95CE" }}>V</span>
+                Venmo {includeVenmo ? "✓" : "✕"}
+              </button>
+            )}
+            {settings.zelleEmail && (
+              <button
+                onClick={() => setIncludeZelle((v) => !v)}
+                className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+                  includeZelle
+                    ? "border-purple-400 bg-purple-50 text-purple-700"
+                    : "border-[#F0F2F5] bg-white text-gray-400 line-through"
+                }`}
+              >
+                <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#6D1ED4" }}>Z</span>
+                Zelle {includeZelle ? "✓" : "✕"}
+              </button>
+            )}
+          </div>
+          {!includeVenmo && !includeZelle && (
+            <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 font-semibold">
+              No payment method selected — invoice will only include the payment link.
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Payment instructions */}
       <div className="mb-5">
         <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
           {t("invoice.paymentInstructions")}
         </div>
         <div className="flex flex-wrap gap-2">
-          {settings.venmoHandle && (
+          {settings.venmoHandle && includeVenmo && (
             <div className="flex items-center gap-2">
               <button
                 onClick={async () => {
@@ -242,7 +289,7 @@ export function SendInvoiceModal({
               )}
             </div>
           )}
-          {settings.zelleEmail && (
+          {settings.zelleEmail && includeZelle && (
             <button
               onClick={async () => {
                 await navigator.clipboard.writeText(settings.zelleEmail);

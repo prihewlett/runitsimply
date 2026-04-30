@@ -406,23 +406,71 @@ export default function PaymentsPage() {
               </div>
             )}
 
-            {/* Payment info for paid invoices */}
-            {selectedInvoice.paymentStatus === "paid" &&
-              selectedInvoice.paymentVia && (
+            {/* Payment info for paid invoices — with edit option */}
+            {selectedInvoice.paymentStatus === "paid" && (
+              <div>
                 <div className="flex items-center gap-2 rounded-[10px] bg-emerald-50 p-3">
                   <span className="text-emerald-600">
                     <CheckIcon size={18} />
                   </span>
-                  <div>
+                  <div className="flex-1">
                     <div className="text-sm font-semibold text-emerald-700">
                       {t("payments.paymentReceived")}
                     </div>
-                    <div className="font-body text-xs text-emerald-600">
-                      {t("payments.paidVia", { method: selectedInvoice.paymentVia })}
-                    </div>
+                    {selectedInvoice.paymentVia && (
+                      <div className="font-body text-xs text-emerald-600">
+                        {t("payments.paidVia", { method: selectedInvoice.paymentVia })}
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+                {!isReadOnly && (
+                  <div className="mt-3">
+                    <div className="mb-2 text-xs font-semibold text-gray-500">Change payment method or revert:</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["Venmo", "Zelle", "Credit Card", "Cash", "Check"] as const).map((method) => {
+                        const pi = PAYMENT_INFO[method];
+                        const isSelected = selectedInvoice.paymentVia === method;
+                        return (
+                          <button
+                            key={method}
+                            onClick={() => handleCollectPayment(method)}
+                            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border p-3 text-left transition-colors ${isSelected ? "border-emerald-300 bg-emerald-50" : "border-[#F0F2F5] hover:bg-gray-50"}`}
+                          >
+                            <span className="flex h-8 w-8 items-center justify-center rounded-lg text-sm" style={{ background: pi.bg, color: pi.color }}>
+                              {pi.icon}
+                            </span>
+                            <div>
+                              <div className="text-xs font-semibold">{paymentMethodLabel(method)}</div>
+                              {isSelected && <div className="font-body text-[10px] text-emerald-600">✓ Current</div>}
+                            </div>
+                          </button>
+                        );
+                      })}
+                      <button
+                        onClick={() => {
+                          setJobs((prev) =>
+                            prev.map((j) =>
+                              j.id === selectedJob
+                                ? { ...j, paymentStatus: "pending" as const, paymentVia: undefined }
+                                : j
+                            )
+                          );
+                          setSelectedJob(null);
+                        }}
+                        className="flex cursor-pointer items-center gap-2 rounded-[10px] border border-red-100 bg-red-50 p-3 text-left transition-colors hover:bg-red-100"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-sm text-red-500">✕</span>
+                        <div>
+                          <div className="text-xs font-semibold text-red-600">Mark as Unpaid</div>
+                          <div className="font-body text-[10px] text-red-400">Revert to pending</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </Modal>
