@@ -315,17 +315,6 @@ export function SendInvoiceModal({
                   {copiedPayment === "venmo" ? t("invoice.linkCopied") : `@${settings.venmoHandle}`}
                 </span>
               </button>
-              {venmoDeepLink && (
-                <a
-                  href={venmoDeepLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-2 text-xs font-semibold transition-all hover:border-blue-300"
-                  style={{ background: PAYMENT_INFO.Venmo.bg, color: PAYMENT_INFO.Venmo.color }}
-                >
-                  Pay with Venmo
-                </a>
-              )}
             </div>
           )}
           {settings.zelleEmail && includeZelle && (
