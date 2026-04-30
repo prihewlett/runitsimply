@@ -30,6 +30,7 @@ export function SendInvoiceModal({
   const [copiedPayment, setCopiedPayment] = useState<"venmo" | "zelle" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [editedBody, setEditedBody] = useState<string | null>(null);
   // Per-invoice payment method selection
   const [includeVenmo, setIncludeVenmo] = useState(true);
   const [includeZelle, setIncludeZelle] = useState(true);
@@ -97,7 +98,7 @@ export function SendInvoiceModal({
       const payload: Record<string, string> = {
         method: sendMethod,
         jobId: job.id,
-        body: sendMethod === "email" ? emailBody : smsBody,
+        body: editedBody ?? (sendMethod === "email" ? emailBody : smsBody),
       };
 
       if (sendMethod === "email") {
@@ -152,6 +153,8 @@ export function SendInvoiceModal({
     setIncludeCreditCard(false);
     setIncludeCash(false);
     setIncludeCheck(false);
+    setEditedBody(null);
+    setSendMethod(null);
     onClose();
   };
 
@@ -381,7 +384,7 @@ export function SendInvoiceModal({
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={() => { setSendMethod("email"); setSendError(""); }}
+            onClick={() => { setSendMethod("email"); setSendError(""); setEditedBody(null); }}
             className={`cursor-pointer rounded-[10px] border-[1.5px] px-4 py-3 text-sm font-semibold transition-colors ${
               sendMethod === "email"
                 ? "border-blue-400 bg-blue-50 text-blue-600"
@@ -391,7 +394,7 @@ export function SendInvoiceModal({
             {t("invoice.sendViaEmail")}
           </button>
           <button
-            onClick={() => { setSendMethod("sms"); setSendError(""); }}
+            onClick={() => { setSendMethod("sms"); setSendError(""); setEditedBody(null); }}
             className={`cursor-pointer rounded-[10px] border-[1.5px] px-4 py-3 text-sm font-semibold transition-colors ${
               sendMethod === "sms"
                 ? "border-blue-400 bg-blue-50 text-blue-600"
@@ -410,11 +413,19 @@ export function SendInvoiceModal({
         </div>
       )}
 
-      {/* Email preview */}
+      {/* Email preview — editable */}
       {sendMethod === "email" && (
         <div className="mb-4">
-          <div className="mb-2 text-xs font-semibold text-gray-600">
-            {t("invoice.emailPreview")}
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600">{t("invoice.emailPreview")}</span>
+            {editedBody !== null && (
+              <button
+                onClick={() => setEditedBody(null)}
+                className="cursor-pointer text-[10px] font-semibold text-blue-500 hover:underline"
+              >
+                Reset to default
+              </button>
+            )}
           </div>
           <div className="rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-4">
             <div className="mb-1 font-body text-[11px] text-gray-400">
@@ -423,9 +434,12 @@ export function SendInvoiceModal({
             <div className="mb-2 font-body text-[11px] text-gray-400">
               Subject: {emailSubject}
             </div>
-            <div className="whitespace-pre-wrap font-body text-xs leading-relaxed text-gray-700">
-              {emailBody}
-            </div>
+            <textarea
+              value={editedBody ?? emailBody}
+              onChange={(e) => setEditedBody(e.target.value)}
+              rows={10}
+              className="w-full resize-y rounded-lg border border-[#F0F2F5] bg-white p-2 font-body text-xs leading-relaxed text-gray-700 outline-none focus:border-blue-300"
+            />
           </div>
           <button
             onClick={handleSend}
@@ -444,19 +458,30 @@ export function SendInvoiceModal({
         </div>
       )}
 
-      {/* SMS preview */}
+      {/* SMS preview — editable */}
       {sendMethod === "sms" && (
         <div className="mb-4">
-          <div className="mb-2 text-xs font-semibold text-gray-600">
-            {t("invoice.smsPreview")}
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600">{t("invoice.smsPreview")}</span>
+            {editedBody !== null && (
+              <button
+                onClick={() => setEditedBody(null)}
+                className="cursor-pointer text-[10px] font-semibold text-blue-500 hover:underline"
+              >
+                Reset to default
+              </button>
+            )}
           </div>
           <div className="rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-4">
             <div className="mb-1 font-body text-[11px] text-gray-400">
               To: {client.phone}
             </div>
-            <div className="whitespace-pre-wrap font-body text-xs leading-relaxed text-gray-700">
-              {smsBody}
-            </div>
+            <textarea
+              value={editedBody ?? smsBody}
+              onChange={(e) => setEditedBody(e.target.value)}
+              rows={5}
+              className="w-full resize-y rounded-lg border border-[#F0F2F5] bg-white p-2 font-body text-xs leading-relaxed text-gray-700 outline-none focus:border-blue-300"
+            />
           </div>
           <button
             onClick={handleSend}
