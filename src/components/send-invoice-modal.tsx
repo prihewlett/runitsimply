@@ -30,9 +30,12 @@ export function SendInvoiceModal({
   const [copiedPayment, setCopiedPayment] = useState<"venmo" | "zelle" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
-  // Per-invoice payment method selection — start with all available methods enabled
+  // Per-invoice payment method selection
   const [includeVenmo, setIncludeVenmo] = useState(true);
   const [includeZelle, setIncludeZelle] = useState(true);
+  const [includeCreditCard, setIncludeCreditCard] = useState(false);
+  const [includeCash, setIncludeCash] = useState(false);
+  const [includeCheck, setIncludeCheck] = useState(false);
 
   if (!job || !client) return null;
 
@@ -46,6 +49,9 @@ export function SendInvoiceModal({
       : job.amount;
   const totalAmountStr = totalAmount.toFixed(2);
 
+  const biz = settings.businessName ?? "RunItSimply";
+  const bizPhone = settings.businessPhone ?? "";
+
   const paymentLines: string[] = [];
   const venmoDeepLink = settings.venmoHandle && includeVenmo
     ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${totalAmountStr}&note=${encodeURIComponent(invoiceId)}`
@@ -56,9 +62,15 @@ export function SendInvoiceModal({
   if (settings.zelleEmail && includeZelle) {
     paymentLines.push(`Zelle: ${settings.zelleEmail}`);
   }
-
-  const biz = settings.businessName ?? "RunItSimply";
-  const bizPhone = settings.businessPhone ?? "";
+  if (includeCreditCard) {
+    paymentLines.push(`Credit Card accepted`);
+  }
+  if (includeCash) {
+    paymentLines.push(`Cash accepted`);
+  }
+  if (includeCheck) {
+    paymentLines.push(`Check payable to ${biz}`);
+  }
 
   const emailSubject = t("invoice.invoiceFor", { business: biz });
   const rateBreakdown =
@@ -137,6 +149,9 @@ export function SendInvoiceModal({
     setSendError("");
     setIncludeVenmo(true);
     setIncludeZelle(true);
+    setIncludeCreditCard(false);
+    setIncludeCash(false);
+    setIncludeCheck(false);
     onClose();
   };
 
@@ -201,46 +216,67 @@ export function SendInvoiceModal({
       </div>
 
       {/* Payment method selection — choose which to include per invoice */}
-      {(settings.venmoHandle || settings.zelleEmail) && (
-        <div className="mb-4">
-          <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
-            Include payment options in this invoice:
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {settings.venmoHandle && (
-              <button
-                onClick={() => setIncludeVenmo((v) => !v)}
-                className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
-                  includeVenmo
-                    ? "border-blue-400 bg-blue-50 text-blue-700"
-                    : "border-[#F0F2F5] bg-white text-gray-400 line-through"
-                }`}
-              >
-                <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#3D95CE" }}>V</span>
-                Venmo {includeVenmo ? "✓" : "✕"}
-              </button>
-            )}
-            {settings.zelleEmail && (
-              <button
-                onClick={() => setIncludeZelle((v) => !v)}
-                className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
-                  includeZelle
-                    ? "border-purple-400 bg-purple-50 text-purple-700"
-                    : "border-[#F0F2F5] bg-white text-gray-400 line-through"
-                }`}
-              >
-                <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#6D1ED4" }}>Z</span>
-                Zelle {includeZelle ? "✓" : "✕"}
-              </button>
-            )}
-          </div>
-          {!includeVenmo && !includeZelle && (
-            <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 font-semibold">
-              No payment method selected — invoice will only include the payment link.
-            </div>
-          )}
+      <div className="mb-4">
+        <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
+          Include payment options in this invoice:
         </div>
-      )}
+        <div className="flex flex-wrap gap-2">
+          {settings.venmoHandle && (
+            <button
+              onClick={() => setIncludeVenmo((v) => !v)}
+              className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+                includeVenmo ? "border-blue-400 bg-blue-50 text-blue-700" : "border-[#F0F2F5] bg-white text-gray-400"
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#3D95CE" }}>V</span>
+              Venmo {includeVenmo ? "✓" : "✕"}
+            </button>
+          )}
+          {settings.zelleEmail && (
+            <button
+              onClick={() => setIncludeZelle((v) => !v)}
+              className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+                includeZelle ? "border-purple-400 bg-purple-50 text-purple-700" : "border-[#F0F2F5] bg-white text-gray-400"
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#6D1ED4" }}>Z</span>
+              Zelle {includeZelle ? "✓" : "✕"}
+            </button>
+          )}
+          <button
+            onClick={() => setIncludeCreditCard((v) => !v)}
+            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+              includeCreditCard ? "border-sky-400 bg-sky-50 text-sky-700" : "border-[#F0F2F5] bg-white text-gray-400"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#0EA5E9" }}>💳</span>
+            Credit Card {includeCreditCard ? "✓" : "+"}
+          </button>
+          <button
+            onClick={() => setIncludeCash((v) => !v)}
+            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+              includeCash ? "border-emerald-400 bg-emerald-50 text-emerald-700" : "border-[#F0F2F5] bg-white text-gray-400"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#10B981" }}>💵</span>
+            Cash {includeCash ? "✓" : "+"}
+          </button>
+          <button
+            onClick={() => setIncludeCheck((v) => !v)}
+            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+              includeCheck ? "border-amber-400 bg-amber-50 text-amber-700" : "border-[#F0F2F5] bg-white text-gray-400"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#F59E0B" }}>✎</span>
+            Check {includeCheck ? "✓" : "+"}
+          </button>
+        </div>
+        {paymentLines.length === 0 && (
+          <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 font-semibold">
+            No payment method selected — invoice will only include the payment link.
+          </div>
+        )}
+      </div>
 
       {/* Payment instructions */}
       <div className="mb-5">
