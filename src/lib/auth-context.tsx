@@ -148,8 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setRoleRaw("owner");
             setCurrentEmployeeIdRaw(null);
           }
-          if (event === "SIGNED_IN" && session?.user) {
-            // Fetch profile on sign in (use maybeSingle to avoid errors for new users)
+          // Fetch profile on SIGNED_IN or INITIAL_SESSION (existing session on page load)
+          if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
             const { data: profileData, error: signInProfileError } = await supabase
               .from("profiles")
               .select("*")
@@ -157,9 +157,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .maybeSingle();
 
             if (signInProfileError) {
-              log.error("onAuthStateChange", "profile fetch failed after SIGNED_IN", {
-                userId: session.user.id,
-                error: signInProfileError,
+              log.error("onAuthStateChange", "profile fetch failed", {
+                event, userId: session.user.id, error: signInProfileError,
               });
             }
 
@@ -174,9 +173,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setProfile(prof);
               setRoleRaw(prof.role);
               setCurrentEmployeeIdRaw(prof.employeeId);
-              log.debug("onAuthStateChange", "profile loaded after SIGNED_IN", { userId: session.user.id, role: prof.role });
+              log.debug("onAuthStateChange", "profile loaded", { event, userId: session.user.id, role: prof.role });
             } else {
-              log.warn("onAuthStateChange", "no profile found after SIGNED_IN", { userId: session.user.id });
+              log.warn("onAuthStateChange", "no profile found", { event, userId: session.user.id });
             }
           }
         }
