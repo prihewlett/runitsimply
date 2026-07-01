@@ -4,12 +4,14 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
 import { createModuleLogger } from "@/lib/logger";
+import { useLanguage } from "@/lib/language-context";
 
 const log = createModuleLogger("auth-callback");
 
 function AuthCallbackInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const supabase = createClient();
@@ -62,7 +64,7 @@ function AuthCallbackInner() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#FAFBFD]">
-      <p className="font-body text-sm text-gray-400">Loading...</p>
+      <p className="font-body text-sm text-gray-400">{t("common.loading")}</p>
     </div>
   );
 }

@@ -2,12 +2,14 @@
 
 import Link from "next/link";
 import { LanguageToggle } from "@/components/ui/language-toggle";
+import { useLanguage } from "@/lib/language-context";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAFBFD] p-4">
       {/* Logo */}
@@ -20,7 +22,7 @@ export default function AuthLayout({
             RunItSimply
           </div>
           <div className="text-[11px] font-medium text-gray-400">
-            Business Manager
+            {t("sidebar.businessManager")}
           </div>
         </div>
       </div>
@@ -37,9 +39,9 @@ export default function AuthLayout({
 
       <p className="mt-4 text-center font-body text-[11px] text-gray-400">
         © {new Date().getFullYear()} RunItSimply ·{" "}
-        <Link href="/terms" className="hover:underline">Terms</Link>
+        <Link href="/terms" className="hover:underline">{t("auth.termsLink")}</Link>
         {" "}·{" "}
-        <Link href="/privacy" className="hover:underline">Privacy</Link>
+        <Link href="/privacy" className="hover:underline">{t("auth.privacyLink")}</Link>
       </p>
     </div>
   );

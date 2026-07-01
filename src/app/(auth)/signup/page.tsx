@@ -34,7 +34,7 @@ export default function SignupPage() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("auth.passwordsDoNotMatch"));
       return;
     }
     if (password.length < 8) {
@@ -166,12 +166,12 @@ export default function SignupPage() {
             className="w-full rounded-[10px] border border-[#F0F2F5] px-3 py-2.5 text-sm outline-none transition-colors focus:border-blue-400"
             placeholder="••••••••"
           />
-          <p className="mt-1 font-body text-[10px] text-gray-400">Minimum 8 characters</p>
+          <p className="mt-1 font-body text-[10px] text-gray-400">{t("auth.min8Chars")}</p>
         </div>
 
         <div>
           <label htmlFor="signup-confirm-password" className="mb-1 block font-body text-[11px] font-semibold text-gray-500">
-            Confirm Password
+            {t("auth.confirmPassword")}
           </label>
           <input
             id="signup-confirm-password"
@@ -202,10 +202,10 @@ export default function SignupPage() {
         </Link>
       </p>
       <p className="mt-3 text-center font-body text-[11px] text-gray-400">
-        By signing up you agree to our{" "}
-        <Link href="/terms" className="underline hover:text-blue-600">Terms</Link>
-        {" "}and{" "}
-        <Link href="/privacy" className="underline hover:text-blue-600">Privacy Policy</Link>
+        {t("auth.agreePrefix")}{" "}
+        <Link href="/terms" className="underline hover:text-blue-600">{t("auth.termsLink")}</Link>
+        {" "}{t("auth.and")}{" "}
+        <Link href="/privacy" className="underline hover:text-blue-600">{t("auth.privacyLink")}</Link>
       </p>
     </div>
   );

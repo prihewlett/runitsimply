@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useLanguage } from "@/lib/language-context";
 
 export default function NotFound() {
+  const { t } = useLanguage();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#FAFBFD] px-4">
       <div className="mb-8 flex items-center gap-2">
@@ -12,15 +16,15 @@ export default function NotFound() {
 
       <div className="text-center">
         <p className="text-6xl font-extrabold text-blue-600">404</p>
-        <h1 className="mt-4 text-xl font-bold text-[#1A1D26]">Page not found</h1>
+        <h1 className="mt-4 text-xl font-bold text-[#1A1D26]">{t("notFound.title")}</h1>
         <p className="mt-2 font-body text-sm text-gray-400">
-          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+          {t("notFound.subtitle")}
         </p>
         <Link
           href="/"
           className="mt-6 inline-block rounded-[10px] bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
         >
-          Go back home
+          {t("notFound.goHome")}
         </Link>
       </div>
     </div>

@@ -426,7 +426,7 @@ export default function PaymentsPage() {
                 </div>
                 {!isReadOnly && (
                   <div className="mt-3">
-                    <div className="mb-2 text-xs font-semibold text-gray-500">Change payment method or revert:</div>
+                    <div className="mb-2 text-xs font-semibold text-gray-500">{t("payments.changeOrRevert")}</div>
                     <div className="grid grid-cols-2 gap-2">
                       {(["Venmo", "Zelle", "Credit Card", "Cash", "Check"] as const).map((method) => {
                         const pi = PAYMENT_INFO[method];
@@ -442,7 +442,7 @@ export default function PaymentsPage() {
                             </span>
                             <div>
                               <div className="text-xs font-semibold">{paymentMethodLabel(method)}</div>
-                              {isSelected && <div className="font-body text-[10px] text-emerald-600">✓ Current</div>}
+                              {isSelected && <div className="font-body text-[10px] text-emerald-600">✓ {t("payments.current")}</div>}
                             </div>
                           </button>
                         );
@@ -462,8 +462,8 @@ export default function PaymentsPage() {
                       >
                         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-sm text-red-500">✕</span>
                         <div>
-                          <div className="text-xs font-semibold text-red-600">Mark as Unpaid</div>
-                          <div className="font-body text-[10px] text-red-400">Revert to pending</div>
+                          <div className="text-xs font-semibold text-red-600">{t("payments.markAsUnpaid")}</div>
+                          <div className="font-body text-[10px] text-red-400">{t("payments.revertToPending")}</div>
                         </div>
                       </button>
                     </div>

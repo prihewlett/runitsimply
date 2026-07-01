@@ -202,6 +202,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       setAuthReady(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── localStorage persistence (fallback mode only) ───

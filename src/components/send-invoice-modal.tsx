@@ -64,13 +64,13 @@ export function SendInvoiceModal({
     paymentLines.push(`Zelle: ${settings.zelleEmail}`);
   }
   if (includeCreditCard) {
-    paymentLines.push(`Credit Card accepted`);
+    paymentLines.push(t("invoice.creditCardAccepted"));
   }
   if (includeCash) {
-    paymentLines.push(`Cash accepted`);
+    paymentLines.push(t("invoice.cashAccepted"));
   }
   if (includeCheck) {
-    paymentLines.push(`Check payable to ${biz}`);
+    paymentLines.push(t("invoice.checkPayableTo", { business: biz }));
   }
 
   const emailSubject = t("invoice.invoiceFor", { business: biz });
@@ -221,7 +221,7 @@ export function SendInvoiceModal({
       {/* Payment method selection — choose which to include per invoice */}
       <div className="mb-4">
         <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
-          Include payment options in this invoice:
+          {t("invoice.includePaymentOptions")}
         </div>
         <div className="flex flex-wrap gap-2">
           {settings.venmoHandle && (
@@ -253,7 +253,7 @@ export function SendInvoiceModal({
             }`}
           >
             <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#0EA5E9" }}>💳</span>
-            Credit Card {includeCreditCard ? "✓" : "+"}
+            {t("payments.creditCard")} {includeCreditCard ? "✓" : "+"}
           </button>
           <button
             onClick={() => setIncludeCash((v) => !v)}
@@ -262,7 +262,7 @@ export function SendInvoiceModal({
             }`}
           >
             <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#10B981" }}>💵</span>
-            Cash {includeCash ? "✓" : "+"}
+            {t("payments.cash")} {includeCash ? "✓" : "+"}
           </button>
           <button
             onClick={() => setIncludeCheck((v) => !v)}
@@ -271,12 +271,12 @@ export function SendInvoiceModal({
             }`}
           >
             <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#F59E0B" }}>✎</span>
-            Check {includeCheck ? "✓" : "+"}
+            {t("payments.check")} {includeCheck ? "✓" : "+"}
           </button>
         </div>
         {paymentLines.length === 0 && (
           <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 font-semibold">
-            No payment method selected — invoice will only include the payment link.
+            {t("invoice.noPaymentMethodSelected")}
           </div>
         )}
       </div>
@@ -412,7 +412,7 @@ export function SendInvoiceModal({
                 onClick={() => setEditedBody(null)}
                 className="cursor-pointer text-[10px] font-semibold text-blue-500 hover:underline"
               >
-                Reset to default
+                {t("invoice.resetToDefault")}
               </button>
             )}
           </div>
@@ -457,7 +457,7 @@ export function SendInvoiceModal({
                 onClick={() => setEditedBody(null)}
                 className="cursor-pointer text-[10px] font-semibold text-blue-500 hover:underline"
               >
-                Reset to default
+                {t("invoice.resetToDefault")}
               </button>
             )}
           </div>

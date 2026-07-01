@@ -646,6 +646,41 @@ const en = {
   "settings.manualPaymentZelle": "Zelle: prihewlett@gmail.com",
   "settings.manualPaymentContact": "After sending payment, email prihewlett@gmail.com to activate.",
   "settings.payWithCard": "Pay with Card, Cash App, or Bank",
+
+  // ── Invoice send options ──
+  "invoice.includePaymentOptions": "Include payment options in this invoice:",
+  "invoice.noPaymentMethodSelected":
+    "No payment method selected — invoice will only include the payment link.",
+  "invoice.resetToDefault": "Reset to default",
+  "invoice.creditCardAccepted": "Credit Card accepted",
+  "invoice.cashAccepted": "Cash accepted",
+  "invoice.checkPayableTo": "Check payable to {{business}}",
+
+  // ── Payments: edit paid invoice ──
+  "payments.changeOrRevert": "Change payment method or revert:",
+  "payments.current": "Current",
+  "payments.markAsUnpaid": "Mark as Unpaid",
+  "payments.revertToPending": "Revert to pending",
+
+  // ── Common ──
+  "common.trialExpired":
+    "Your trial has expired — data cannot be saved until your subscription is activated.",
+  "common.loading": "Loading...",
+
+  // ── Auth extras ──
+  "auth.accountCreated": "Account created successfully! Please sign in.",
+  "auth.min8Chars": "Minimum 8 characters",
+  "auth.passwordsDoNotMatch": "Passwords do not match.",
+  "auth.agreePrefix": "By signing up you agree to our",
+  "auth.and": "and",
+  "auth.termsLink": "Terms",
+  "auth.privacyLink": "Privacy Policy",
+
+  // ── 404 ──
+  "notFound.title": "Page not found",
+  "notFound.subtitle":
+    "The page you're looking for doesn't exist or has been moved.",
+  "notFound.goHome": "Go back home",
 } as const;
 
 const es: Record<TranslationKey, string> = {
@@ -1291,6 +1326,40 @@ const es: Record<TranslationKey, string> = {
   "settings.manualPaymentZelle": "Zelle: prihewlett@gmail.com",
   "settings.manualPaymentContact": "Despu\u00E9s de enviar el pago, escr\u00EDbenos a prihewlett@gmail.com para activar.",
   "settings.payWithCard": "Pagar con Tarjeta, Cash App, o Banco",
+
+  // ── Invoice send options ──
+  "invoice.includePaymentOptions": "Incluir opciones de pago en esta factura:",
+  "invoice.noPaymentMethodSelected":
+    "Ningún método de pago seleccionado — la factura solo incluirá el enlace de pago.",
+  "invoice.resetToDefault": "Restablecer al original",
+  "invoice.creditCardAccepted": "Se acepta tarjeta de crédito",
+  "invoice.cashAccepted": "Se acepta efectivo",
+  "invoice.checkPayableTo": "Cheque a nombre de {{business}}",
+
+  // ── Payments: edit paid invoice ──
+  "payments.changeOrRevert": "Cambiar método de pago o revertir:",
+  "payments.current": "Actual",
+  "payments.markAsUnpaid": "Marcar como no pagado",
+  "payments.revertToPending": "Volver a pendiente",
+
+  // ── Common ──
+  "common.trialExpired":
+    "Tu período de prueba ha expirado — los datos no se pueden guardar hasta que se active tu suscripción.",
+  "common.loading": "Cargando...",
+
+  // ── Auth extras ──
+  "auth.accountCreated": "¡Cuenta creada con éxito! Por favor inicia sesión.",
+  "auth.min8Chars": "Mínimo 8 caracteres",
+  "auth.passwordsDoNotMatch": "Las contraseñas no coinciden.",
+  "auth.agreePrefix": "Al registrarte aceptas nuestros",
+  "auth.and": "y",
+  "auth.termsLink": "Términos",
+  "auth.privacyLink": "Política de Privacidad",
+
+  // ── 404 ──
+  "notFound.title": "Página no encontrada",
+  "notFound.subtitle": "La página que buscas no existe o ha sido movida.",
+  "notFound.goHome": "Volver al inicio",
 };
 
 export const dictionaries = { en, es } as const;
