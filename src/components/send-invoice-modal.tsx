@@ -26,7 +26,6 @@ export function SendInvoiceModal({
   const { settings } = useSettings();
   const { t } = useLanguage();
   const [sendMethod, setSendMethod] = useState<"email" | "sms" | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [copiedPayment, setCopiedPayment] = useState<"venmo" | "zelle" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
@@ -41,7 +40,6 @@ export function SendInvoiceModal({
   if (!job || !client) return null;
 
   const invoiceId = `INV-${job.id.slice(-8).toUpperCase()}`;
-  const invoiceLink = `https://pay.runitsimply.com/inv/${invoiceId}`;
 
   // Calculate total: hourly rate × hours, or flat amount
   const totalAmount =
@@ -78,15 +76,9 @@ export function SendInvoiceModal({
     job.rateType === "hourly" && job.duration
       ? ` (${job.duration} hrs × $${job.amount}/hr)`
       : "";
-  const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.invoiceLink")}: ${invoiceLink}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
+  const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
 
-  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""} ${invoiceLink}`;
-
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(invoiceLink);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
-  };
+  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""}`;
 
   const handleSend = async () => {
     if (!sendMethod) return;
@@ -145,7 +137,6 @@ export function SendInvoiceModal({
 
   const handleClose = () => {
     setSendMethod(null);
-    setLinkCopied(false);
     setCopiedPayment(null);
     setSendError("");
     setIncludeVenmo(true);
@@ -345,24 +336,6 @@ export function SendInvoiceModal({
               </span>
             </button>
           )}
-        </div>
-      </div>
-
-      {/* Invoice link + copy */}
-      <div className="mb-5">
-        <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
-          {t("invoice.invoiceLink")}
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex-1 truncate rounded-[10px] border border-[#F0F2F5] bg-white px-3 py-2 font-mono text-xs text-gray-600">
-            {invoiceLink}
-          </div>
-          <button
-            onClick={handleCopyLink}
-            className="cursor-pointer whitespace-nowrap rounded-[10px] bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
-          >
-            {linkCopied ? t("invoice.linkCopied") : t("invoice.copyLink")}
-          </button>
         </div>
       </div>
 
