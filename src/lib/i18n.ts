@@ -681,6 +681,25 @@ const en = {
   "notFound.subtitle":
     "The page you're looking for doesn't exist or has been moved.",
   "notFound.goHome": "Go back home",
+
+  // ── Onboarding checklist ──
+  "onboarding.welcome": "Welcome to RunItSimply! 👋",
+  "onboarding.subtitle":
+    "Let's get your business set up — it only takes a few minutes.",
+  "onboarding.step1Title": "Add your first client",
+  "onboarding.step1Desc": "Add the people you work for.",
+  "onboarding.step2Title": "Schedule your first job",
+  "onboarding.step2Desc": "Put a job on the calendar.",
+  "onboarding.step3Title": "Set up how you get paid",
+  "onboarding.step3Desc":
+    "Add your Venmo or Zelle so invoices include it.",
+  "onboarding.step4Title": "Invite your team (optional)",
+  "onboarding.step4Desc":
+    "Team members can see their schedule and clock in.",
+  "onboarding.go": "Go",
+  "onboarding.done": "Done",
+  "onboarding.hide": "Hide this guide",
+  "onboarding.progress": "{{done}} of {{total}} complete",
 } as const;
 
 const es: Record<TranslationKey, string> = {
@@ -1360,6 +1379,25 @@ const es: Record<TranslationKey, string> = {
   "notFound.title": "Página no encontrada",
   "notFound.subtitle": "La página que buscas no existe o ha sido movida.",
   "notFound.goHome": "Volver al inicio",
+
+  // ── Onboarding checklist ──
+  "onboarding.welcome": "¡Bienvenido a RunItSimply! 👋",
+  "onboarding.subtitle":
+    "Configuremos tu negocio — solo toma unos minutos.",
+  "onboarding.step1Title": "Agrega tu primer cliente",
+  "onboarding.step1Desc": "Agrega las personas para las que trabajas.",
+  "onboarding.step2Title": "Programa tu primer trabajo",
+  "onboarding.step2Desc": "Pon un trabajo en el calendario.",
+  "onboarding.step3Title": "Configura cómo te pagan",
+  "onboarding.step3Desc":
+    "Agrega tu Venmo o Zelle para que aparezca en las facturas.",
+  "onboarding.step4Title": "Invita a tu equipo (opcional)",
+  "onboarding.step4Desc":
+    "Tu equipo puede ver su horario y marcar entrada.",
+  "onboarding.go": "Ir",
+  "onboarding.done": "Listo",
+  "onboarding.hide": "Ocultar esta guía",
+  "onboarding.progress": "{{done}} de {{total}} completados",
 };
 
 export const dictionaries = { en, es } as const;
