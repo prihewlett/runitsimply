@@ -50,6 +50,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const { employees } = useData();
 
   const isUsingSupabaseAuth = !!user;
+  // In production (Supabase configured), always show sign-out even if user state
+  // hasn't loaded yet — avoids the case where a valid server session exists but
+  // the client-side user object is still null.
+  const isSupabaseMode = !!(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("YOUR_PROJECT") &&
+    process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith("https://")
+  );
 
   const visibleItems = isOwner
     ? NAV_ITEMS
@@ -119,26 +128,28 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       {/* Bottom section */}
       <div className="space-y-2.5 border-t border-[#F0F2F5] px-3 py-3.5">
         {/* When using Supabase auth: show user info + sign out */}
-        {isUsingSupabaseAuth ? (
+        {isSupabaseMode ? (
           <div className="rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-2.5">
-            <div className="mb-2 flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-[10px] font-bold text-white">
-                {(profile?.fullName || user?.email || "U")
-                  .split(" ")
-                  .map((w) => w[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-xs font-semibold">
-                  {profile?.fullName || "User"}
+            {isUsingSupabaseAuth && (
+              <div className="mb-2 flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-[10px] font-bold text-white">
+                  {(profile?.fullName || user?.email || "U")
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2)}
                 </div>
-                <div className="truncate font-body text-[10px] text-gray-400">
-                  {user?.email}
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-xs font-semibold">
+                    {profile?.fullName || "User"}
+                  </div>
+                  <div className="truncate font-body text-[10px] text-gray-400">
+                    {user?.email}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             <button
               onClick={() => signOut()}
               className="w-full cursor-pointer rounded-lg border border-[#F0F2F5] bg-white px-2 py-1.5 text-[10px] font-semibold text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600"
@@ -212,7 +223,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         <div className="flex justify-center">
           <LanguageToggle compact />
         </div>
-        {user?.email && process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map(e => e.trim()).filter(Boolean).includes(user.email) && (
+        {user?.email && process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean).includes(user.email.toLowerCase()) && (
           <Link
             href="/admin"
             className="flex items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-purple-50 to-blue-50 px-3 py-2 text-xs font-semibold text-purple-600 transition-colors hover:from-purple-100 hover:to-blue-100"

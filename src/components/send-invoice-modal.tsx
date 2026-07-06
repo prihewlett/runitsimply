@@ -26,15 +26,20 @@ export function SendInvoiceModal({
   const { settings } = useSettings();
   const { t } = useLanguage();
   const [sendMethod, setSendMethod] = useState<"email" | "sms" | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [copiedPayment, setCopiedPayment] = useState<"venmo" | "zelle" | null>(null);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [editedBody, setEditedBody] = useState<string | null>(null);
+  // Per-invoice payment method selection
+  const [includeVenmo, setIncludeVenmo] = useState(true);
+  const [includeZelle, setIncludeZelle] = useState(true);
+  const [includeCreditCard, setIncludeCreditCard] = useState(false);
+  const [includeCash, setIncludeCash] = useState(false);
+  const [includeCheck, setIncludeCheck] = useState(false);
 
   if (!job || !client) return null;
 
   const invoiceId = `INV-${job.id.slice(-8).toUpperCase()}`;
-  const invoiceLink = `https://pay.runitsimply.com/inv/${invoiceId}`;
 
   // Calculate total: hourly rate × hours, or flat amount
   const totalAmount =
@@ -43,34 +48,37 @@ export function SendInvoiceModal({
       : job.amount;
   const totalAmountStr = totalAmount.toFixed(2);
 
-  const paymentLines: string[] = [];
-  const venmoDeepLink = settings.venmoHandle
-    ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${totalAmountStr}&note=${encodeURIComponent(invoiceId)}`
-    : "";
-  if (settings.venmoHandle) {
-    paymentLines.push(`Venmo: @${settings.venmoHandle}`);
-  }
-  if (settings.zelleEmail) {
-    paymentLines.push(`Zelle: ${settings.zelleEmail}`);
-  }
-
   const biz = settings.businessName ?? "RunItSimply";
   const bizPhone = settings.businessPhone ?? "";
+
+  const paymentLines: string[] = [];
+  const venmoDeepLink = settings.venmoHandle && includeVenmo
+    ? `venmo://paycharge?txn=pay&recipients=${encodeURIComponent(settings.venmoHandle)}&amount=${totalAmountStr}&note=${encodeURIComponent(invoiceId)}`
+    : "";
+  if (settings.venmoHandle && includeVenmo) {
+    paymentLines.push(`Venmo: @${settings.venmoHandle}`);
+  }
+  if (settings.zelleEmail && includeZelle) {
+    paymentLines.push(`Zelle: ${settings.zelleEmail}`);
+  }
+  if (includeCreditCard) {
+    paymentLines.push(t("invoice.creditCardAccepted"));
+  }
+  if (includeCash) {
+    paymentLines.push(t("invoice.cashAccepted"));
+  }
+  if (includeCheck) {
+    paymentLines.push(t("invoice.checkPayableTo", { business: biz }));
+  }
 
   const emailSubject = t("invoice.invoiceFor", { business: biz });
   const rateBreakdown =
     job.rateType === "hourly" && job.duration
       ? ` (${job.duration} hrs × $${job.amount}/hr)`
       : "";
-  const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.invoiceLink")}: ${invoiceLink}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
+  const emailBody = `${t("invoice.hi")} ${client.contact},\n\n${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}.\n\n${t("invoice.serviceDate")}: ${job.date} · ${job.time}\n\n${t("invoice.paymentInstructions")}:\n${paymentLines.map((l) => `- ${l}`).join("\n")}\n\n${t("invoice.thankYou")}\n${biz}${bizPhone ? ` · ${bizPhone}` : ""}`;
 
-  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""} ${invoiceLink}`;
-
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(invoiceLink);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
-  };
+  const smsBody = `${t("invoice.hi")} ${client.contact}! ${t("invoice.invoiceBody")} $${totalAmountStr}${rateBreakdown} ${t("invoice.from").toLowerCase()} ${biz}. ${paymentLines.join(" | ")}.${venmoDeepLink ? ` Pay now: ${venmoDeepLink}` : ""}`;
 
   const handleSend = async () => {
     if (!sendMethod) return;
@@ -82,7 +90,7 @@ export function SendInvoiceModal({
       const payload: Record<string, string> = {
         method: sendMethod,
         jobId: job.id,
-        body: sendMethod === "email" ? emailBody : smsBody,
+        body: editedBody ?? (sendMethod === "email" ? emailBody : smsBody),
       };
 
       if (sendMethod === "email") {
@@ -129,9 +137,15 @@ export function SendInvoiceModal({
 
   const handleClose = () => {
     setSendMethod(null);
-    setLinkCopied(false);
     setCopiedPayment(null);
     setSendError("");
+    setIncludeVenmo(true);
+    setIncludeZelle(true);
+    setIncludeCreditCard(false);
+    setIncludeCash(false);
+    setIncludeCheck(false);
+    setEditedBody(null);
+    setSendMethod(null);
     onClose();
   };
 
@@ -195,13 +209,76 @@ export function SendInvoiceModal({
         </div>
       </div>
 
+      {/* Payment method selection — choose which to include per invoice */}
+      <div className="mb-4">
+        <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
+          {t("invoice.includePaymentOptions")}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {settings.venmoHandle && (
+            <button
+              onClick={() => setIncludeVenmo((v) => !v)}
+              className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+                includeVenmo ? "border-blue-400 bg-blue-50 text-blue-700" : "border-[#F0F2F5] bg-white text-gray-400"
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#3D95CE" }}>V</span>
+              Venmo {includeVenmo ? "✓" : "✕"}
+            </button>
+          )}
+          {settings.zelleEmail && (
+            <button
+              onClick={() => setIncludeZelle((v) => !v)}
+              className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+                includeZelle ? "border-purple-400 bg-purple-50 text-purple-700" : "border-[#F0F2F5] bg-white text-gray-400"
+              }`}
+            >
+              <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#6D1ED4" }}>Z</span>
+              Zelle {includeZelle ? "✓" : "✕"}
+            </button>
+          )}
+          <button
+            onClick={() => setIncludeCreditCard((v) => !v)}
+            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+              includeCreditCard ? "border-sky-400 bg-sky-50 text-sky-700" : "border-[#F0F2F5] bg-white text-gray-400"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#0EA5E9" }}>💳</span>
+            {t("payments.creditCard")} {includeCreditCard ? "✓" : "+"}
+          </button>
+          <button
+            onClick={() => setIncludeCash((v) => !v)}
+            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+              includeCash ? "border-emerald-400 bg-emerald-50 text-emerald-700" : "border-[#F0F2F5] bg-white text-gray-400"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#10B981" }}>💵</span>
+            {t("payments.cash")} {includeCash ? "✓" : "+"}
+          </button>
+          <button
+            onClick={() => setIncludeCheck((v) => !v)}
+            className={`flex cursor-pointer items-center gap-2 rounded-[10px] border-[1.5px] px-3 py-2 text-xs font-semibold transition-all ${
+              includeCheck ? "border-amber-400 bg-amber-50 text-amber-700" : "border-[#F0F2F5] bg-white text-gray-400"
+            }`}
+          >
+            <span className="flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold text-white" style={{ background: "#F59E0B" }}>✎</span>
+            {t("payments.check")} {includeCheck ? "✓" : "+"}
+          </button>
+        </div>
+        {paymentLines.length === 0 && (
+          <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 font-semibold">
+            {t("invoice.noPaymentMethodSelected")}
+          </div>
+        )}
+      </div>
+
       {/* Payment instructions */}
       <div className="mb-5">
         <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
           {t("invoice.paymentInstructions")}
         </div>
         <div className="flex flex-wrap gap-2">
-          {settings.venmoHandle && (
+          {settings.venmoHandle && includeVenmo && (
             <div className="flex items-center gap-2">
               <button
                 onClick={async () => {
@@ -229,20 +306,9 @@ export function SendInvoiceModal({
                   {copiedPayment === "venmo" ? t("invoice.linkCopied") : `@${settings.venmoHandle}`}
                 </span>
               </button>
-              {venmoDeepLink && (
-                <a
-                  href={venmoDeepLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 rounded-[10px] border-[1.5px] border-[#F0F2F5] px-3 py-2 text-xs font-semibold transition-all hover:border-blue-300"
-                  style={{ background: PAYMENT_INFO.Venmo.bg, color: PAYMENT_INFO.Venmo.color }}
-                >
-                  Pay with Venmo
-                </a>
-              )}
             </div>
           )}
-          {settings.zelleEmail && (
+          {settings.zelleEmail && includeZelle && (
             <button
               onClick={async () => {
                 await navigator.clipboard.writeText(settings.zelleEmail);
@@ -273,24 +339,6 @@ export function SendInvoiceModal({
         </div>
       </div>
 
-      {/* Invoice link + copy */}
-      <div className="mb-5">
-        <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
-          {t("invoice.invoiceLink")}
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex-1 truncate rounded-[10px] border border-[#F0F2F5] bg-white px-3 py-2 font-mono text-xs text-gray-600">
-            {invoiceLink}
-          </div>
-          <button
-            onClick={handleCopyLink}
-            className="cursor-pointer whitespace-nowrap rounded-[10px] bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
-          >
-            {linkCopied ? t("invoice.linkCopied") : t("invoice.copyLink")}
-          </button>
-        </div>
-      </div>
-
       {/* Send method selection */}
       <div className="mb-4">
         <div className="mb-2 font-body text-[11px] font-semibold text-gray-400">
@@ -298,7 +346,7 @@ export function SendInvoiceModal({
         </div>
         <div className="grid grid-cols-2 gap-2">
           <button
-            onClick={() => { setSendMethod("email"); setSendError(""); }}
+            onClick={() => { setSendMethod("email"); setSendError(""); setEditedBody(null); }}
             className={`cursor-pointer rounded-[10px] border-[1.5px] px-4 py-3 text-sm font-semibold transition-colors ${
               sendMethod === "email"
                 ? "border-blue-400 bg-blue-50 text-blue-600"
@@ -308,7 +356,7 @@ export function SendInvoiceModal({
             {t("invoice.sendViaEmail")}
           </button>
           <button
-            onClick={() => { setSendMethod("sms"); setSendError(""); }}
+            onClick={() => { setSendMethod("sms"); setSendError(""); setEditedBody(null); }}
             className={`cursor-pointer rounded-[10px] border-[1.5px] px-4 py-3 text-sm font-semibold transition-colors ${
               sendMethod === "sms"
                 ? "border-blue-400 bg-blue-50 text-blue-600"
@@ -327,11 +375,19 @@ export function SendInvoiceModal({
         </div>
       )}
 
-      {/* Email preview */}
+      {/* Email preview — editable */}
       {sendMethod === "email" && (
         <div className="mb-4">
-          <div className="mb-2 text-xs font-semibold text-gray-600">
-            {t("invoice.emailPreview")}
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600">{t("invoice.emailPreview")}</span>
+            {editedBody !== null && (
+              <button
+                onClick={() => setEditedBody(null)}
+                className="cursor-pointer text-[10px] font-semibold text-blue-500 hover:underline"
+              >
+                {t("invoice.resetToDefault")}
+              </button>
+            )}
           </div>
           <div className="rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-4">
             <div className="mb-1 font-body text-[11px] text-gray-400">
@@ -340,9 +396,12 @@ export function SendInvoiceModal({
             <div className="mb-2 font-body text-[11px] text-gray-400">
               Subject: {emailSubject}
             </div>
-            <div className="whitespace-pre-wrap font-body text-xs leading-relaxed text-gray-700">
-              {emailBody}
-            </div>
+            <textarea
+              value={editedBody ?? emailBody}
+              onChange={(e) => setEditedBody(e.target.value)}
+              rows={10}
+              className="w-full resize-y rounded-lg border border-[#F0F2F5] bg-white p-2 font-body text-xs leading-relaxed text-gray-700 outline-none focus:border-blue-300"
+            />
           </div>
           <button
             onClick={handleSend}
@@ -361,19 +420,30 @@ export function SendInvoiceModal({
         </div>
       )}
 
-      {/* SMS preview */}
+      {/* SMS preview — editable */}
       {sendMethod === "sms" && (
         <div className="mb-4">
-          <div className="mb-2 text-xs font-semibold text-gray-600">
-            {t("invoice.smsPreview")}
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-xs font-semibold text-gray-600">{t("invoice.smsPreview")}</span>
+            {editedBody !== null && (
+              <button
+                onClick={() => setEditedBody(null)}
+                className="cursor-pointer text-[10px] font-semibold text-blue-500 hover:underline"
+              >
+                {t("invoice.resetToDefault")}
+              </button>
+            )}
           </div>
           <div className="rounded-[10px] border border-[#F0F2F5] bg-[#FAFBFD] p-4">
             <div className="mb-1 font-body text-[11px] text-gray-400">
               To: {client.phone}
             </div>
-            <div className="whitespace-pre-wrap font-body text-xs leading-relaxed text-gray-700">
-              {smsBody}
-            </div>
+            <textarea
+              value={editedBody ?? smsBody}
+              onChange={(e) => setEditedBody(e.target.value)}
+              rows={5}
+              className="w-full resize-y rounded-lg border border-[#F0F2F5] bg-white p-2 font-body text-xs leading-relaxed text-gray-700 outline-none focus:border-blue-300"
+            />
           </div>
           <button
             onClick={handleSend}

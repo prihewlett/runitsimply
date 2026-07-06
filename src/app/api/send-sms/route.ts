@@ -13,14 +13,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { to, body } = await request.json();
+    const { to: rawTo, body } = await request.json();
 
-    if (!to || !body) {
+    if (!rawTo || !body) {
       return NextResponse.json(
         { error: "to and body are required" },
         { status: 400 }
       );
     }
+
+    // Normalize to E.164 format (+1XXXXXXXXXX for US numbers)
+    const digits = rawTo.replace(/\D/g, "");
+    const to = digits.startsWith("1") && digits.length === 11
+      ? `+${digits}`
+      : digits.length === 10
+      ? `+1${digits}`
+      : rawTo.startsWith("+") ? rawTo : `+${digits}`;
 
     // Check if Twilio is configured
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -50,9 +58,10 @@ export async function POST(request: NextRequest) {
       status: message.status,
     });
   } catch (err) {
-    console.error("Send SMS error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Send SMS error:", message);
     return NextResponse.json(
-      { error: "Failed to send SMS" },
+      { error: message || "Failed to send SMS" },
       { status: 500 }
     );
   }
